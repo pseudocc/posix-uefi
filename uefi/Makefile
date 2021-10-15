@@ -18,8 +18,8 @@ endif
 
 # for libuefi.a
 LIBSRCS = $(filter-out $(wildcard crt_*.c),$(wildcard *.c)) $(wildcard *.S)
-TMP = $(LIBSRCS:.c=.o)
-LIBOBJS = $(TMP:.S=.o)
+TMP2 = $(LIBSRCS:.c=.o)
+LIBOBJS = $(TMP2:.S=.o)
 
 # detect toolchain
 ifeq ($(wildcard /usr/bin/clang),)
