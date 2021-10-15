@@ -419,7 +419,7 @@ int fseek (FILE *__stream, long int __off, int __whence)
             }
             break;
         default:
-            status = __stream->SetPosition(__stream, off);
+            status = __stream->SetPosition(__stream, __off);
             break;
     }
     return EFI_ERROR(status) ? -1 : 0;
