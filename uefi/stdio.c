@@ -236,14 +236,17 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
             efi_guid_t bioGuid = EFI_BLOCK_IO_PROTOCOL_GUID;
             efi_handle_t handles[128];
             uintn_t handle_size = sizeof(handles);
-            status = BS->LocateHandle(ByProtocol, &bioGuid, NULL, handle_size, (efi_handle_t*)&handles);
+            status = BS->LocateHandle(ByProtocol, &bioGuid, NULL, &handle_size, (efi_handle_t*)&handles);
             if(!EFI_ERROR(status)) {
                 handle_size /= (uintn_t)sizeof(efi_handle_t);
+                /* workaround a bug in TianoCore, it reports zero size even though the data is in the buffer */
+                if(handle_size < 1)
+                    handle_size = (uintn_t)sizeof(handles) / sizeof(efi_handle_t);
                 __blk_devs = (block_file_t*)malloc(handle_size * sizeof(block_file_t));
                 if(__blk_devs) {
                     memset(__blk_devs, 0, handle_size * sizeof(block_file_t));
                     for(i = __blk_ndevs = 0; i < handle_size; i++)
-                        if(!EFI_ERROR(BS->HandleProtocol(handles[i], &bioGuid, (void **) &__blk_devs[__blk_ndevs].bio)) &&
+                        if(handles[i] && !EFI_ERROR(BS->HandleProtocol(handles[i], &bioGuid, (void **) &__blk_devs[__blk_ndevs].bio)) &&
                             __blk_devs[__blk_ndevs].bio && __blk_devs[__blk_ndevs].bio->Media &&
                             __blk_devs[__blk_ndevs].bio->Media->BlockSize > 0)
                                 __blk_ndevs++;
