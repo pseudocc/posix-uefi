@@ -274,7 +274,8 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
 #else
     status = __root_dir->Open(__root_dir, &ret, (wchar_t*)__filename,
 #endif
-        __modes[0] == CL('w') ? (EFI_FILE_MODE_WRITE | EFI_FILE_MODE_READ | EFI_FILE_MODE_CREATE) : EFI_FILE_MODE_READ,
+        __modes[0] == CL('w') || __modes[0] == CL('a') ? (EFI_FILE_MODE_WRITE | EFI_FILE_MODE_READ | EFI_FILE_MODE_CREATE) :
+            EFI_FILE_MODE_READ,
         __modes[1] == CL('d') ? EFI_FILE_DIRECTORY : 0);
     if(EFI_ERROR(status)) {
 err:    __stdio_seterrno(status);
