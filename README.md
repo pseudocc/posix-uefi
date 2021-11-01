@@ -63,10 +63,6 @@ int main(int argc, char **argv)
 By default it uses Clang + lld, and PE is generated without conversion. If `USE_GCC` is set, then the host native's GNU gcc + ld
 used to create a shared object and get converted into an .efi file.
 
-If you comment out `USE_UTF8` in uefi.h, then all character representation will use `wchar_t`, and there will be no string
-conversion between your application and the UEFI interfaces. This also means you must use `L""` and `L''` literals everywhere,
-and your main would receive `wchar_t **argv`.
-
 ### Available Makefile Options
 
 | Variable   | Description                                                                                          |
@@ -159,7 +155,8 @@ Because UEFI has no concept of device files nor of symlinks, dirent fields are l
 ```c
 int exit_bs();
 ```
-Exit Boot Services. Returns 0 on success.
+Exit Boot Services. Returns 0 on success. You won't be able to return from main() after calling this successfully, you must
+transfer control directly.
 
 ```c
 uint8_t *getenv(char_t *name, uintn_t *len);
@@ -331,6 +328,11 @@ License
 -------
 
 POSIX_UEFI is licensed under the terms of the MIT license.
+
+Contributors
+------------
+
+I'd like to say thanks to @vladimir132 for a through testing and very accurate and detailed feedbacks.
 
 Cheers,
 

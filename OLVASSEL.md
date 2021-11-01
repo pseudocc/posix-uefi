@@ -65,10 +65,6 @@ Alapértelmezetten Clang + lld környezetet keres és állít be, ami direktben 
 környezeti változó be van állítva, akkor a hoszt natív GNU gcc + ld használatával egy megosztott függvénykönyvtárat fordít, amit
 aztán átkonvertál .efi fájllá.
 
-Ha kikommentezed az `USE_UTF8` opciót az uefi.h fájl elején, akkor minden karakter `wchar_t` típusú lesz, és nem fogja konvertálni
-a sztringeket a programod és az UEFI interfészek között. Ez azt is jelenti, hogy minden konstansnál `L""` és `L''` előtagot kell
-használni, valamint hogy a main függvényed `wchar_t **argv` paramétert fog kapni.
-
 ### Elérhető Makefile opciók
 
 | Változó    | Leírás                                                                                               |
@@ -162,7 +158,8 @@ valamint DT_REF típusok támogatottak.
 ```c
 int exit_bs();
 ```
-Exit Boot Services, az UEFI sárkánylakta vidékének elhagyása. Siker esetén 0-át ad vissza.
+Exit Boot Services, az UEFI sárkánylakta vidékének elhagyása. Siker esetén 0-át ad vissza. A sikeres hívást követően nem fogsz
+tudni visszatérni a main()-ből, direktben kell átadnod a vezérlést.
 
 ```c
 uint8_t *getenv(char_t *name, uintn_t *len);
@@ -335,6 +332,11 @@ Licensz
 -------
 
 POSIX_UEFI az MIT licensz alatt kerül terjesztésre.
+
+Hozzájárulások
+--------------
+
+Szeretnék köszönetet mondani @vladimir132 -nek az alapos tesztelésért és a pontos és részletes visszajelzésekért.
 
 Ez minden,
 
