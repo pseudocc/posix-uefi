@@ -756,147 +756,6 @@ typedef struct {
 
     efi_create_event_t          CreateEvent;
     efi_set_timer_t             SetTimer;
-    efi_wasolution;
-    uint32_t Accuracy;
-    boolean_t SetsToZero;
-} efi_time_capabilities_t;
-
-typedef struct {
-    efi_guid_t  CapsuleGuid;
-    uint32_t    HeaderSize;
-    uint32_t    Flags;
-    uint32_t    CapsuleImageSize;
-} efi_capsule_header_t;
-
-#ifndef DataBlock
-#define DataBlock ContinuationPointer
-#endif
-typedef struct {
-    uint64_t                Length;
-    efi_physical_address_t  ContinuationPointer;
-} efi_capsule_block_descriptor_t;
-
-typedef efi_status_t (EFIAPI *efi_get_time_t)(efi_time_t *Time, efi_time_capabilities_t *Capabilities);
-typedef efi_status_t (EFIAPI *efi_set_time_t)(efi_time_t *Time);
-typedef efi_status_t (EFIAPI *efi_get_wakeup_time_t)(boolean_t *Enable, boolean_t *Pending, efi_time_t *Time);
-typedef efi_status_t (EFIAPI *efi_set_wakeup_time_t)(boolean_t Enable, efi_time_t *Time);
-typedef efi_status_t (EFIAPI *efi_set_virtual_address_map_t)(uintn_t MemoryMapSize, uintn_t DescriptorSize,
-    uint32_t DescriptorVersion, efi_memory_descriptor_t *VirtualMap);
-typedef efi_status_t (EFIAPI *efi_convert_pointer_t)(uintn_t DebugDisposition, void **Address);
-typedef efi_status_t (EFIAPI *efi_get_variable_t)(wchar_t *VariableName, efi_guid_t *VendorGuid, uint32_t *Attributes,
-    uintn_t *DataSize, void *Data);
-typedef efi_status_t (EFIAPI *efi_get_next_variable_name_t)(uintn_t *VariableNameSize, wchar_t *VariableName,
-    efi_guid_t *VendorGuid);
-typedef efi_status_t (EFIAPI *efi_set_variable_t)(wchar_t *VariableName, efi_guid_t *VendorGuid, uint32_t Attributes,
-    uintn_t DataSize, void *Data);
-typedef efi_status_t (EFIAPI *efi_get_next_high_mono_t)(uint64_t *Count);
-typedef efi_status_t (EFIAPI *efi_reset_system_t)(efi_reset_type_t ResetType, efi_status_t ResetStatus, uintn_t DataSize,
-    wchar_t *ResetData);
-typedef efi_status_t (EFIAPI *efi_update_capsule_t)(efi_capsule_header_t **CapsuleHeaderArray, uintn_t CapsuleCount,
-    efi_physical_address_t ScatterGatherList);
-typedef efi_status_t (EFIAPI *efi_query_capsule_capabilities_t)(efi_capsule_header_t **CapsuleHeaderArray, uintn_t CapsuleCount,
-    uint64_t *MaximumCapsuleSize, efi_reset_type_t *ResetType);
-typedef efi_status_t (EFIAPI *efi_query_variable_info_t)(uint32_t Attributes, uint64_t *MaximumVariableStorageSize,
-    uint64_t *RemainingVariableStorageSize, uint64_t *MaximumVariableSize);
-
-typedef struct {
-    efi_table_header_t              Hdr;
-
-    efi_get_time_t                  GetTime;
-    efi_set_time_t                  SetTime;
-    efi_get_wakeup_time_t           GetWakeupTime;
-    efi_set_wakeup_time_t           SetWakeupTime;
-
-    efi_set_virtual_address_map_t   SetVirtualAddressMap;
-    efi_convert_pointer_t           ConvertPointer;
-
-    efi_get_variable_t              GetVariable;
-    efi_get_next_variable_name_t    GetNextVariableName;
-    efi_set_variable_t              SetVariable;
-
-    efi_get_next_high_mono_t        GetNextHighMonotonicCount;
-    efi_reset_system_t              ResetSystem;
-
-    efi_update_capsule_t            UpdateCapsule;
-    efi_query_capsule_capabilities_t QueryCapsuleCapabilities;
-    efi_query_variable_info_t       QueryVariableInfo;
-} efi_runtime_services_t;
-extern efi_runtime_services_t *RT;
-#define gRT RT
-
-/** Boot Services ***/
-typedef struct {
-    efi_handle_t    AgentHandle;
-    efi_handle_t    ControllerHandle;
-    uint32_t        Attributes;
-    uint32_t        OpenCount;
-} efi_open_protocol_information_entry_t;
-
-typedef efi_tpl_t (EFIAPI *efi_raise_tpl_t)(efi_tpl_t NewTpl);
-typedef efi_tpl_t (EFIAPI *efi_restore_tpl_t)(efi_tpl_t OldTpl);
-typedef efi_status_t (EFIAPI *efi_allocate_pages_t)(efi_allocate_type_t Type, efi_memory_type_t MemoryType,
-    uintn_t NoPages, efi_physical_address_t *Memory);
-typedef efi_status_t (EFIAPI *efi_free_pages_t)(efi_physical_address_t Memory, uintn_t NoPages);
-typedef efi_status_t (EFIAPI *efi_get_memory_map_t)(uintn_t *MemoryMapSize, efi_memory_descriptor_t *MemoryMap,
-    uintn_t *MapKey, uintn_t *DescriptorSize, uint32_t *DescriptorVersion);
-typedef efi_status_t (EFIAPI *efi_allocate_pool_t)(efi_memory_type_t PoolType, uintn_t Size, void **Buffer);
-typedef efi_status_t (EFIAPI *efi_free_pool_t)(void *Buffer);
-typedef void (EFIAPI *efi_event_notify_t)(efi_event_t Event, void *Context);
-typedef efi_status_t (EFIAPI *efi_create_event_t)(uint32_t Type, efi_tpl_t NotifyTpl, efi_event_notify_t NotifyFunction,
-    void *NextContext, efi_event_t *Event);
-typedef efi_status_t (EFIAPI *efi_set_timer_t)(efi_event_t Event, efi_timer_delay_t Type, uint64_t TriggerTime);
-typedef efi_status_t (EFIAPI *efi_wait_for_event_t)(uintn_t NumberOfEvents, efi_event_t *Event, uintn_t Index);
-typedef efi_status_t (EFIAPI *efi_signal_event_t)(efi_event_t Event);
-typedef efi_status_t (EFIAPI *efi_close_event_t)(efi_event_t Event);
-typedef efi_status_t (EFIAPI *efi_check_event_t)(efi_event_t Event);
-typedef efi_status_t (EFIAPI *efi_handle_protocol_t)(efi_handle_t Handle, efi_guid_t *Protocol, void **Interface);
-typedef efi_status_t (EFIAPI *efi_register_protocol_notify_t)(efi_guid_t *Protocol, efi_event_t Event, void **Registration);
-typedef efi_status_t (EFIAPI *efi_locate_handle_t)(efi_locate_search_type_t SearchType, efi_guid_t *Protocol,
-    void *SearchKey, uintn_t *BufferSize, efi_handle_t *Buffer);
-typedef efi_status_t (EFIAPI *efi_locate_device_path_t)(efi_guid_t *Protocol, efi_device_path_t **DevicePath,
-    efi_handle_t *Device);
-typedef efi_status_t (EFIAPI *efi_install_configuration_table_t)(efi_guid_t *Guid, void *Table);
-typedef efi_status_t (EFIAPI *efi_image_load_t)(boolean_t BootPolicy, efi_handle_t ParentImageHandle, efi_device_path_t *FilePath,
-    void *SourceBuffer, uintn_t SourceSize, efi_handle_t *ImageHandle);
-typedef efi_status_t (EFIAPI *efi_image_start_t)(efi_handle_t ImageHandle, uintn_t *ExitDataSize, wchar_t **ExitData);
-typedef efi_status_t (EFIAPI *efi_exit_t)(efi_handle_t ImageHandle, efi_status_t ExitStatus, uintn_t ExitDataSize,
-    wchar_t *ExitData);
-typedef efi_status_t (EFIAPI *efi_exit_boot_services_t)(efi_handle_t ImageHandle, uintn_t MapKey);
-typedef efi_status_t (EFIAPI *efi_get_next_monotonic_t)(uint64_t *Count);
-typedef efi_status_t (EFIAPI *efi_stall_t)(uintn_t Microseconds);
-typedef efi_status_t (EFIAPI *efi_set_watchdog_timer_t)(uintn_t Timeout, uint64_t WatchdogCode, uintn_t DataSize,
-    wchar_t *WatchdogData);
-typedef efi_status_t (EFIAPI *efi_connect_controller_t)(efi_handle_t ControllerHandle, efi_handle_t *DriverImageHandle,
-    efi_device_path_t *RemainingDevicePath, boolean_t Recursive);
-typedef efi_status_t (EFIAPI *efi_disconnect_controller_t)(efi_handle_t ControllerHandle, efi_handle_t DriverImageHandle,
-    efi_handle_t ChildHandle);
-typedef efi_status_t (EFIAPI *efi_open_protocol_t)(efi_handle_t Handle, efi_guid_t *Protocol, void **Interface,
-    efi_handle_t AgentHandle, efi_handle_t ControllerHandle, uint32_t Attributes);
-typedef efi_status_t (EFIAPI *efi_close_protocol_t)(efi_handle_t Handle, efi_guid_t *Protocol, efi_handle_t AgentHandle,
-    efi_handle_t ControllerHandle);
-typedef efi_status_t (EFIAPI *efi_open_protocol_information_t)(efi_handle_t Handle, efi_guid_t *Protocol,
-    efi_open_protocol_information_entry_t**EntryBuffer, uintn_t *EntryCount);
-typedef efi_status_t (EFIAPI *efi_protocols_per_handle_t)(efi_handle_t Handle, efi_guid_t ***ProtocolBuffer,
-    uintn_t *ProtocolBufferCount);
-typedef efi_status_t (EFIAPI *efi_locate_handle_buffer_t)(efi_locate_search_type_t SearchType, efi_guid_t *Protocol,
-    void *SearchKey, uintn_t NoHandles, efi_handle_t **Handles);
-typedef efi_status_t (EFIAPI *efi_locate_protocol_t)(efi_guid_t *Protocol, void *Registration, void **Interface);
-typedef efi_status_t (EFIAPI *efi_calculate_crc32_t)(void *Data, uintn_t DataSize, uint32_t *Crc32);
-
-typedef struct {
-    efi_table_header_t          Hdr;
-
-    efi_raise_tpl_t             RaiseTPL;
-    efi_restore_tpl_t           RestoreTPL;
-
-    efi_allocate_pages_t        AllocatePages;
-    efi_free_pages_t            FreePages;
-    efi_get_memory_map_t        GetMemoryMap;
-    efi_allocate_pool_t         AllocatePool;
-    efi_free_pool_t             FreePool;
-
-    efi_create_event_t          CreateEvent;
-    efi_set_timer_t             SetTimer;
     efi_wait_for_event_t        WaitForEvent;
     efi_signal_event_t          SignalEvent;
     efi_close_event_t           CloseEvent;
@@ -1364,4 +1223,198 @@ typedef struct {
     efi_lba_t   EndingLBA;
     uint64_t    Attributes;
     wchar_t     PartitionName[36];
-} efi_partit
+} efi_partition_entry_t;
+
+/*** POSIX definitions ***/
+#define abs(x) ((x)<0?-(x):(x))
+#define min(x,y) ((x)<(y)?(x):(y))
+#define max(x,y) ((x)>(y)?(x):(y))
+
+/* dirent.h */
+#define IFTODT(mode)    (((mode) & 0170000) >> 12)
+#define DTTOIF(dirtype) ((dirtype) << 12)
+#define DT_DIR          4
+#define DT_REG          8
+struct dirent {
+    unsigned short int d_reclen;
+    unsigned char d_type;
+    char_t d_name[FILENAME_MAX];
+};
+typedef struct efi_file_handle_s DIR;
+extern DIR *opendir (const char_t *__name);
+extern struct dirent *readdir (DIR *__dirp);
+extern void rewinddir (DIR *__dirp);
+extern int closedir (DIR *__dirp);
+
+/* errno.h */
+extern int errno;
+#define	EPERM		 1	/* Operation not permitted */
+#define	ENOENT		 2	/* No such file or directory */
+#define	ESRCH		 3	/* No such process */
+#define	EINTR		 4	/* Interrupted system call */
+#define	EIO		 5	/* I/O error */
+#define	ENXIO		 6	/* No such device or address */
+#define	E2BIG		 7	/* Argument list too long */
+#define	ENOEXEC		 8	/* Exec format error */
+#define	EBADF		 9	/* Bad file number */
+#define	ECHILD		10	/* No child processes */
+#define	EAGAIN		11	/* Try again */
+#define	ENOMEM		12	/* Out of memory */
+#define	EACCES		13	/* Permission denied */
+#define	EFAULT		14	/* Bad address */
+#define	ENOTBLK		15	/* Block device required */
+#define	EBUSY		16	/* Device or resource busy */
+#define	EEXIST		17	/* File exists */
+#define	EXDEV		18	/* Cross-device link */
+#define	ENODEV		19	/* No such device */
+#define	ENOTDIR		20	/* Not a directory */
+#define	EISDIR		21	/* Is a directory */
+#define	EINVAL		22	/* Invalid argument */
+#define	ENFILE		23	/* File table overflow */
+#define	EMFILE		24	/* Too many open files */
+#define	ENOTTY		25	/* Not a typewriter */
+#define	ETXTBSY		26	/* Text file busy */
+#define	EFBIG		27	/* File too large */
+#define	ENOSPC		28	/* No space left on device */
+#define	ESPIPE		29	/* Illegal seek */
+#define	EROFS		30	/* Read-only file system */
+#define	EMLINK		31	/* Too many links */
+#define	EPIPE		32	/* Broken pipe */
+#define	EDOM		33	/* Math argument out of domain of func */
+#define	ERANGE		34	/* Math result not representable */
+
+/* stdlib.h */
+#define RAND_MAX       2147483647
+typedef int (*__compar_fn_t) (const void *, const void *);
+extern int atoi (const char_t *__nptr);
+extern int64_t atol (const char_t *__nptr);
+extern int64_t strtol (const char_t *__nptr, char_t **__endptr, int __base);
+extern void *malloc (size_t __size);
+extern void *calloc (size_t __nmemb, size_t __size);
+extern void *realloc (void *__ptr, size_t __size);
+extern void free (void *__ptr);
+extern void abort (void);
+extern void exit (int __status);
+/* exit Boot Services function. Returns 0 on success. */
+extern int exit_bs();
+extern void *bsearch (const void *__key, const void *__base, size_t __nmemb, size_t __size, __compar_fn_t __compar);
+extern void qsort (void *__base, size_t __nmemb, size_t __size, __compar_fn_t __compar);
+extern int mblen (const char *__s, size_t __n);
+extern int mbtowc (wchar_t * __pwc, const char * __s, size_t __n);
+extern int wctomb (char *__s, wchar_t __wchar);
+extern size_t mbstowcs (wchar_t *__pwcs, const char *__s, size_t __n);
+extern size_t wcstombs (char *__s, const wchar_t *__pwcs, size_t __n);
+extern void srand(unsigned int __seed);
+extern int rand(void);
+extern uint8_t *getenv(char_t *name, uintn_t *len);
+extern int setenv(char_t *name, uintn_t len, uint8_t *data);
+
+/* stdio.h */
+#ifndef BUFSIZ
+#define BUFSIZ 8192
+#endif
+#define SEEK_SET	0	/* Seek from beginning of file.  */
+#define SEEK_CUR	1	/* Seek from current position.  */
+#define SEEK_END	2	/* Seek from end of file.  */
+#define stdin (FILE*)ST->ConsoleInHandle
+#define stdout (FILE*)ST->ConsoleOutHandle
+#define stderr (FILE*)ST->ConsoleErrorHandle
+typedef struct efi_file_handle_s FILE;
+extern int fclose (FILE *__stream);
+extern int fflush (FILE *__stream);
+extern int remove (const char_t *__filename);
+extern FILE *fopen (const char_t *__filename, const char_t *__modes);
+extern size_t fread (void *__ptr, size_t __size, size_t __n, FILE *__stream);
+extern size_t fwrite (const void *__ptr, size_t __size, size_t __n, FILE *__s);
+extern int fseek (FILE *__stream, long int __off, int __whence);
+extern long int ftell (FILE *__stream);
+extern int feof (FILE *__stream);
+extern int fprintf (FILE *__stream, const char_t *__format, ...);
+extern int printf (const char_t *__format, ...);
+extern int sprintf (char_t *__s, const char_t *__format, ...);
+extern int vfprintf (FILE *__s, const char_t *__format, __builtin_va_list __arg);
+extern int vprintf (const char_t *__format, __builtin_va_list __arg);
+extern int vsprintf (char_t *__s, const char_t *__format, __builtin_va_list __arg);
+extern int snprintf (char_t *__s, size_t __maxlen, const char_t *__format, ...);
+extern int vsnprintf (char_t *__s, size_t __maxlen, const char_t *__format, __builtin_va_list __arg);
+extern int getchar (void);
+/* non-blocking, only returns UNICODE if there's any key pressed, 0 otherwise */
+extern int getchar_ifany (void);
+extern int putchar (int __c);
+
+/* string.h */
+extern void *memcpy(void *__dest, const void *__src, size_t __n);
+extern void *memmove(void *__dest, const void *__src, size_t __n);
+extern void *memset(void *__s, int __c, size_t __n);
+extern int memcmp(const void *__s1, const void *__s2, size_t __n);
+extern void *memchr(const void *__s, int __c, size_t __n);
+extern void *memrchr(const void *__s, int __c, size_t __n);
+void *memmem(const void *haystack, size_t hl, const void *needle, size_t nl);
+void *memrmem(const void *haystack, size_t hl, const void *needle, size_t nl);
+extern char_t *strcpy (char_t *__dest, const char_t *__src);
+extern char_t *strncpy (char_t *__dest, const char_t *__src, size_t __n);
+extern char_t *strcat (char_t *__dest, const char_t *__src);
+extern char_t *strncat (char_t *__dest, const char_t *__src, size_t __n);
+extern int strcmp (const char_t *__s1, const char_t *__s2);
+extern int strncmp (const char_t *__s1, const char_t *__s2, size_t __n);
+extern char_t *strdup (const char_t *__s);
+extern char_t *strchr (const char_t *__s, int __c);
+extern char_t *strrchr (const char_t *__s, int __c);
+extern char_t *strstr (const char_t *__haystack, const char_t *__needle);
+extern char_t *strtok (char_t *__s, const char_t *__delim);
+extern char_t *strtok_r (char_t *__s, const char_t *__delim, char_t **__save_ptr);
+extern size_t strlen (const char_t *__s);
+
+/* sys/stat.h */
+#define S_IREAD    0400 /* Read by owner.  */
+#define S_IWRITE   0200 /* Write by owner.  */
+#define S_IFMT  0170000 /* These bits determine file type.  */
+#define S_IFIFO 0010000 /* FIFO.  */
+#define S_IFCHR 0020000 /* Character device.  */
+#define S_IFDIR 0040000 /* Directory.  */
+#define S_IFBLK 0060000 /* Block device.  */
+#define S_IFREG 0100000 /* Regular file.  */
+#define S_ISTYPE(mode, mask)    (((mode) & S_IFMT) == (mask))
+#define S_ISCHR(mode)   S_ISTYPE((mode), S_IFCHR)
+#define S_ISDIR(mode)   S_ISTYPE((mode), S_IFDIR)
+#define S_ISBLK(mode)   S_ISTYPE((mode), S_IFBLK)
+#define S_ISREG(mode)   S_ISTYPE((mode), S_IFREG)
+#define S_ISFIFO(mode)  S_ISTYPE((mode), S_IFIFO)
+struct stat {
+    mode_t      st_mode;
+    off_t       st_size;
+    blkcnt_t    st_blocks;
+    time_t      st_atime;
+    time_t      st_mtime;
+    time_t      st_ctime;
+};
+extern int stat (const char_t *__file, struct stat *__buf);
+extern int fstat (FILE *__f, struct stat *__buf);
+extern int mkdir (const char_t *__path, mode_t __mode);
+
+/* time.h */
+struct tm {
+  int tm_sec;   /* Seconds. [0-60] (1 leap second) */
+  int tm_min;   /* Minutes. [0-59] */
+  int tm_hour;  /* Hours.   [0-23] */
+  int tm_mday;  /* Day.	    [1-31] */
+  int tm_mon;   /* Month.   [0-11] */
+  int tm_year;  /* Year     - 1900.  */
+  int tm_wday;  /* Day of week. [0-6] (not set) */
+  int tm_yday;  /* Days in year.[0-365] (not set) */
+  int tm_isdst; /* DST.     [-1/0/1]*/
+};
+extern struct tm *localtime (const time_t *__timer);
+extern time_t mktime(const struct tm *__tm);
+extern time_t time(time_t *__timer);
+
+/* unistd.h */
+extern unsigned int sleep (unsigned int __seconds);
+extern int usleep (unsigned long int __useconds);
+extern int unlink (const wchar_t *__filename);
+
+#ifdef  __cplusplus
+}
+#endif
+
+#endif /* _UEFI_H_ */
