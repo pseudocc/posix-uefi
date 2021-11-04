@@ -324,6 +324,17 @@ naming conflicts. POSIX-UEFI itself ships the very minimum set of typedefs and s
 The advantage of this is that you can use the simplicity of the POSIX-UEFI library and build environment, while getting
 access to the most up-to-date protocol and interface definitions at the same time.
 
+__IMPORTANT NOTE__
+
+In some cases the combination of GNU-EFI headers and Clang might incorrectly define `uint64_t` as 32 bits. If this happens,
+then
+```c
+#undef __STDC_VERSION__
+#include <efi.h>
+#include <uefi.h>
+```
+should workaround the problem by avoiding the inclusion of stdint.h and definitng uint64_t by efibind.h as `unsigned long long`.
+
 License
 -------
 

@@ -328,6 +328,18 @@ névvel).
 Ennek az az előnye, hogy használhatod a POSIX-UEFI egyszerű könyvtárát és fordító környezetét, ugyanakkor hozzáférhetsz
 a legfrissebb protokoll és interfész definíciókoz egyaránt.
 
+__FONTOS FIGYELMEZTETÉS__
+
+Bizonyos esetekben a GNU-EFI hedörök és a Clang kombinációja hibásan 32 bites `uint64_t` típust eredményezhet. Ha ez előjön,
+akkor a
+```c
+#undef __STDC_VERSION__
+#include <efi.h>
+#include <uefi.h>
+```
+kerülőmegoldás lehet a problémára, mivel így nem húzza be az stdint.h-t, helyette az efibind.h fogja definiálni az uint64_t
+típust mint `unsigned long long`.
+
 Licensz
 -------
 
