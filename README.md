@@ -333,7 +333,7 @@ then
 #include <efi.h>
 #include <uefi.h>
 ```
-should workaround the problem by avoiding the inclusion of stdint.h and definitng uint64_t by efibind.h as `unsigned long long`.
+should workaround the problem by avoiding the inclusion of stdint.h and defining uint64_t by efibind.h as `unsigned long long`.
 
 License
 -------
