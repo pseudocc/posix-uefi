@@ -40,20 +40,20 @@ extern "C" {
 #define USE_UTF8            1
 
 /* get these from the compiler */
-#ifndef _STDINT_H
+#if !defined(_STDINT_H) && !defined(_GCC_STDINT_H)
 #define _STDINT_H
-typedef char                int8_t;
+typedef signed char         int8_t;
 typedef unsigned char       uint8_t;
-typedef short               int16_t;
+typedef signed short        int16_t;
 typedef unsigned short      uint16_t;
-typedef int                 int32_t;
+typedef signed int          int32_t;
 typedef unsigned int        uint32_t;
 #ifndef __clang__
-typedef long int            int64_t;
+typedef signed long int     int64_t;
 typedef unsigned long int   uint64_t;
 typedef unsigned long int   uintptr_t;
 #else
-typedef long long           int64_t;
+typedef signed long long    int64_t;
 typedef unsigned long long  uint64_t;
 typedef unsigned long long  uintptr_t;
 #endif
