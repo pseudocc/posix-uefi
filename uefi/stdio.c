@@ -89,8 +89,8 @@ int fstat (FILE *__f, struct stat *__buf)
     for(i = 0; i < __blk_ndevs; i++)
         if(__f == (FILE*)__blk_devs[i].bio) {
             __buf->st_mode = S_IREAD | S_IWRITE | S_IFBLK;
-            __buf->st_size = (off_t)__blk_devs[i].bio->Media->BlockSize * (off_t)__blk_devs[i].bio->Media->LastBlock;
-            __buf->st_blocks = __blk_devs[i].bio->Media->LastBlock;
+            __buf->st_size = (off_t)__blk_devs[i].bio->Media->BlockSize * ((off_t)__blk_devs[i].bio->Media->LastBlock + 1);
+            __buf->st_blocks = __blk_devs[i].bio->Media->LastBlock + 1;
             return 0;
         }
     status = __f->GetInfo(__f, &infGuid, &fsiz, &info);
