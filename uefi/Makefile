@@ -22,7 +22,7 @@ TMP2 = $(LIBSRCS:.c=.o)
 LIBOBJS = $(TMP2:.S=.o)
 
 # detect toolchain
-ifeq ($(wildcard /usr/bin/clang),)
+ifeq ($(wildcard /usr/bin/clang)$(wildcard /usr/local/bin/clang)$(wildcard /usr/lib/llvm/*/bin/clang),)
 USE_GCC = 1
 endif
 ifneq ($(USE_GCC),)
