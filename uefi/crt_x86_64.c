@@ -172,7 +172,7 @@ efi_status_t uefi_init (
     if (rel && relent) {
         while (relsz > 0) {
             if(ELF64_R_TYPE (rel->r_info) == R_X86_64_RELATIVE)
-                { addr = (unsigned long *)(ldbase + rel->r_offset); *addr += ldbase; break; }
+                { addr = (unsigned long *)(ldbase + rel->r_offset); *addr += ldbase; }
             rel = (Elf64_Rel*) ((char *) rel + relent);
             relsz -= relent;
         }
