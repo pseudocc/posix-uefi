@@ -497,7 +497,7 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
     uint8_t *mem;
     int64_t arg;
     int len, sign, i, j;
-    char_t *p, *orig=dst, *end = dst + maxlen - 1, tmpstr[19], pad, n;
+    char_t *p, *orig=dst, *end = dst + maxlen - 1, tmpstr[24], pad, n;
 #if !defined(USE_UTF8) || !USE_UTF8
     char *c;
 #endif
@@ -536,10 +536,7 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
                     arg*=-1;
                     sign++;
                 }
-                if(arg>99999999999999999L) {
-                    arg=99999999999999999L;
-                }
-                i=18;
+                i=23;
                 tmpstr[i]=0;
                 do {
                     tmpstr[--i]=CL('0')+(arg%10);
@@ -548,8 +545,8 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
                 if(sign) {
                     tmpstr[--i]=CL('-');
                 }
-                if(len>0 && len<18) {
-                    while(i>18-len) {
+                if(len>0 && len<21) {
+                    while(i>21-len) {
                         tmpstr[--i]=pad;
                     }
                 }
