@@ -153,7 +153,8 @@ int __remove (const char_t *__filename, int isdir)
     efi_guid_t infGuid = EFI_FILE_INFO_GUID;
     efi_file_info_t info;
     uintn_t fsiz = (uintn_t)sizeof(efi_file_info_t), i;
-    FILE *f = fopen(__filename, CL("r"));
+    /* little hack to support read and write mode for Delete() without create mode */
+    FILE *f = fopen(__filename, CL("@"));
     if(!f || f == stdin || f == stdout || f == stderr || (__ser && f == (FILE*)__ser)) {
         errno = EBADF;
         return 1;
@@ -271,6 +272,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
     errno = 0;
     ret = (FILE*)malloc(sizeof(FILE));
     if(!ret) return NULL;
+    /* normally write means read,write,create. But for remove (internal '@' mode), we need read,write without create */
 #ifndef UEFI_NO_UTF8
     mbstowcs((wchar_t*)&wcname, __filename, BUFSIZ - 1);
     status = __root_dir->Open(__root_dir, &ret, (wchar_t*)&wcname,
@@ -278,7 +280,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
     status = __root_dir->Open(__root_dir, &ret, (wchar_t*)__filename,
 #endif
         __modes[0] == CL('w') || __modes[0] == CL('a') ? (EFI_FILE_MODE_WRITE | EFI_FILE_MODE_READ | EFI_FILE_MODE_CREATE) :
-            EFI_FILE_MODE_READ,
+            EFI_FILE_MODE_READ | (__modes[0] == CL('@') ? EFI_FILE_MODE_WRITE : 0),
         __modes[1] == CL('d') ? EFI_FILE_DIRECTORY : 0);
     if(EFI_ERROR(status)) {
 err:    __stdio_seterrno(status);
@@ -287,10 +289,10 @@ err:    __stdio_seterrno(status);
     status = ret->GetInfo(ret, &infGuid, &fsiz, &info);
     if(EFI_ERROR(status)) goto err;
     if(__modes[1] == CL('d') && !(info.Attribute & EFI_FILE_DIRECTORY)) {
-        free(ret); errno = ENOTDIR; return NULL;
+        ret->Close(ret); free(ret); errno = ENOTDIR; return NULL;
     }
     if(__modes[1] != CL('d') && (info.Attribute & EFI_FILE_DIRECTORY)) {
-        free(ret); errno = EISDIR; return NULL;
+        ret->Close(ret); free(ret); errno = EISDIR; return NULL;
     }
     if(__modes[0] == CL('a')) fseek(ret, 0, SEEK_END);
     return ret;
