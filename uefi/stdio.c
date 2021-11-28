@@ -532,7 +532,7 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
             if(*fmt==CL('d')) {
                 arg = __builtin_va_arg(args, int64_t);
                 sign=0;
-                if((int)arg<0) {
+                if(arg<0) {
                     arg*=-1;
                     sign++;
                 }
