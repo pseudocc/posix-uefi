@@ -91,6 +91,15 @@ The build environment configurator was created in a way that it can handle any n
 only `x86_64` crt0 has been throughfully tested for now. There's an `aarch64` crt0 too, but since I don't have
 an ARM UEFI board, it hasn't been tested on real machine. Should work though.
 
+### Available Configuration Options
+
+These can be set at the beginning of `uefi.h`.
+
+| Define                | Description                                                                               |
+|-----------------------|-------------------------------------------------------------------------------------------|
+| `UEFI_NO_UTF8`        | Do not use transparent UTF-8 conversion between the application and the UEFI interface    |
+| `UEFI_NO_TRACK_ALLOC` | Do not keep track of allocated buffers (faster, but causes out of bound reads on realloc) |
+
 Notable Differences to POSIX libc
 ---------------------------------
 
@@ -99,13 +108,19 @@ for you, because simplicity was one of its main goals. It is the best to say thi
 rather than a POSIX compatible libc.
 
 All strings in the UEFI environment are stored with 16 bits wide characters. The library provides `wchar_t` type for that,
-and the `USE_UTF8` define to convert between `char` and `wchar_t` transparently. If you comment out `USE_UTF8`, then for
+and the `UEFI_NO_UTF8` define to convert between `char` and `wchar_t` transparently. If you have `UEFI_NO_UTF8`, then for
 example your main() will NOT be like `main(int argc, char **argv)`, but `main(int argc, wchar_t **argv)` instead. All
 the other string related libc functions (like strlen() for example) will use this wide character type too. For this reason,
 you must specify your string literals with `L""` and characters with `L''`. To handle both configurations, `char_t` type is
 defined, which is either `char` or `wchar_t`, and the `CL()` macro which might add the `L` prefix to constant literals.
 Functions that supposed to handle characters in int type (like `getchar`, `putchar`), do not truncate to unsigned char,
 rather to wchar_t.
+
+Sadly UEFI has no concept of reallocation. AllocatePool does not accept input, and there's no way to query the size of an
+already allocated buffer. So we are left with two bad options with `realloc`:
+1. we keep track of sizes ourselves, which means more complexcity and a considerable overhead, so performance loss.
+2. make peace with the fact that copying data to the new buffer unavoidably reads out of bounds from the old buffer.
+You can choose this latter with the `UEFI_NO_TRACK_ALLOC` define.
 
 File types in dirent are limited to directories and files only (DT_DIR, DT_REG), but for stat in addition to S_IFDIR and
 S_IFREG, S_IFIFO (for console streams: stdin, stdout, stderr), S_IFBLK (for Block IO) and S_IFCHR (for Serial IO) also
@@ -192,15 +207,15 @@ Sets an environment variable by `name` with `data` of length `len`. On success r
 | getchar_ifany | non-blocking, returns 0 if there was no key press, UNICODE otherwise       |
 | putchar       | as usual, stdout only (no stream redirects)                                |
 
-File open modes: `"r"` read, `"w"` write, `"a"` append. Because of UEFI peculiarities, `"wd"` creates directory.
+String formating is limited; only supports padding via positive number prefixes, `%d`, `%x`, `%X`, `%c`, `%s`, `%q` and
+`%p` (no `%e`, `%f`, `%g`, no asterisk and dollar). When `UEFI_NO_UTF8` is defined, then formating operates on wchar_t, so
+it also supports the non-standard `%S` (printing an UTF-8 string) and `%Q` (printing an escaped UTF-8 string). These
+functions don't allocate memory, but in return the total length of the output string cannot be longer than `BUFSIZ`
+(8k if you haven't defined otherwise), except for the variants which have a maxlen argument. For convenience, `%D` requires
+`efi_physical_address_t` as argument, and it dumps memory, 16 bytes or one line at once. With the padding modifier you can
+dump more lines, for example `%5D` gives you 5 lines (80 dumped bytes).
 
-String formating is limited; only supports padding via number prefixes, `%d`, `%x`, `%X`, `%c`, `%s`, `%q` and
-`%p`. When `USE_UTF8` is not defined, then formating operates on wchar_t, so it also supports the non-standard `%S`
-(printing an UTF-8 string), `%Q` (printing an escaped UTF-8 string). These functions don't allocate memory, but in
-return the total length of the output string cannot be longer than `BUFSIZ` (8k if you haven't defined otherwise),
-except for the variants which have a maxlen argument. For convenience, `%D` requires `efi_physical_address_t` as
-argument, and it dumps memory, 16 bytes or one line at once. With the padding modifier you can dump more lines, for
-example `%5D` gives you 5 lines (80 dumped bytes).
+File open modes: `"r"` read, `"w"` write, `"a"` append. Because of UEFI peculiarities, `"wd"` creates directory.
 
 Special "device files" you can open:
 

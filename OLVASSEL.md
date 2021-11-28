@@ -93,6 +93,15 @@ A fordítási környezet konfiguráló úgy lett kialakítva, hogy akárhány ar
 az `x86_64` crt0 lett alaposan letesztelve. Van egy `aarch64` crt0 is, de mivel nekem nincs ARM UEFI-s gépem, teszteletlen.
 Elvileg kéne működnie.
 
+### Elérhető konfigurációs opciók
+
+Ezeket az `uefi.h` elején lehet állítani.
+
+| Define                | Leírás                                                                                    |
+|-----------------------|-------------------------------------------------------------------------------------------|
+| `UEFI_NO_UTF8`        | Ne használjon transzparens UTF-8 konverziót az alkalmazás és az UEFI interfész között     |
+| `UEFI_NO_TRACK_ALLOC` | Ne tartsa nyilván a foglalt méreteket (gyorsabb, de bufferen kívülről olvas realloc-nál)  |
+
 Lényeges eltérések a POSIX libc-től
 -----------------------------------
 
@@ -101,13 +110,19 @@ biztosítja, mivel egyszerűségre törekszik. A legjobb talán UEFI API burkol�
 kompatíbilis libc-ként.
 
 UEFI alatt minden sztring 16 bit széles karakterekkel van tárolva. A függvénykönyvtár biztosít egy `wchar_t` típust ehhez,
-és egy `USE_UTF8` define opciót a transzparens `char` és `wchar_t` közötti konvertáláshoz. Ha kikommentezed a `USE_UTF8`-at,
+és egy `UEFI_NO_UTF8` define opciót a transzparens `char` és `wchar_t` közötti konvertáláshoz. Ha megadod az `UEFI_NO_UTF8`-at,
 akkor például a main() függvényed NEM `main(int argc, char **argv)` lesz, hanem `main(int argc, wchar_t **argv)`. Az összes
 többi sztring függvény (mint például az strlen() is) ezt a széles karaktertípust fogja használni. Emiatt az összes sztring
 konstansot `L""`-el, a karakterkonstansokat pedig `L''`-el kell definiálni. Hogy mindkét konfigurációt kezelni lehessen,
 adott egy `char_t` típus, ami vagy `char` vagy `wchar_t`, és a `CL()` makró, ami `L` előtagot ad a konstansokhoz, amikor kell.
 Azok a funkciók, amik a karaktereket int típusként kezelik (pl. `getchar`, `putchar`), nem unsigned char-ra csonkítanak, hanem
 wchar_t-re.
+
+Sajnos az UEFI-ben nincs olyan, hogy buffer átméretezés. Az AllocatePool nem fogad bemenetet, és nincs mód egymár allokált
+buffer méretének lekérésére sem. Szóval két rossz közül válaszhatunk a `realloc`-nál:
+1. magunk tartjuk nyilván a méreteket, ami bonyolultabb kódot és lassabb futást jelent.
+2. megbékélünk vele, hogy az adatok másolása az új bufferbe elkerülhetetlenül a régi bufferen túli olvasást eredményez.
+Ez utőbbi opció választható az `UEFI_NO_TRACK_ALLOC` define megadásával.
 
 A fájl típusok a dirent-ben nagyon limitáltak, csak könyvtár és fájl megengedett (DT_DIR, DT_REG), de a stat pluszban az
 S_IFDIR és S_IFREG típusokhoz, S_IFIFO (konzol folyamok: stdin, stdout, stderr), S_IFBLK (Block IO esetén) és S_IFCHR
@@ -196,14 +211,15 @@ A `name` környezeti változó beállítása `len` hosszú `data` értékkel. Si
 | getchar_ifany | nem blokkoló, 0-át ad vissza ha nem volt billentyű, egyébként UNICODE-ot   |
 | putchar       | megszokott, csak stdout (nincs átriányítás)                                |
 
-Fájl megnyitási módok: `"r"` olvasás, `"w"` írás, `"a"` hozzáfűzés. UEFI sajátosságok miatt, `"wd"` könyvtárat hoz létre.
+A sztring formázás limitált: csak pozitív számokat fogad el prefixnek, `%d`, `%x`, `%X`, `%c`, `%s`, `%q` és `%p` (nincs `%e`,
+`%f`, `%g`, nincs csillag és dollárjel). Ha a `UEFI_NO_UTF8` definiálva van, akkor a formázás wchar_t-t használ, ezért ilyenkor
+támogatott a nem szabványos `%S` (UTF-8 sztring kiírás) és `%Q` (eszképelt UTF-8 sztring kiírás) is. Ezek a funkciók nem
+foglalnak le memóriát, cserébe a teljes hossz `BUFSIZ` lehet (8k ha nem definiálták másképp), kivéve azokat a variánsokat,
+amik elfogadnak maxlen hossz paramétert. Kényelmi okokból támogatott a `%D` aminek `efi_physical_address_t` paramétert kell
+adni, és a memóriát dumpolja, 16 bájtos sorokban. A szám módosítókkal lehet több sort is dumpoltatni, például `%5D` 5 sort
+fog dumpolni (80 bájt).
 
-A sztring formázás limitált: csak számokat fogad el prefixnek, `%d`, `%x`, `%X`, `%c`, `%s`, `%q` és `%p`. Ha `USE_UTF8` nincs
-definiálva, akkor a formázás wchar_t-t használ, ezért ilyenkor támogatott a nem szabványos `%S` (UTF-8 sztring kiírás), `%Q`
-(eszképelt UTF-8 sztring kiírás) is. Ezek a funkciók nem foglalnak le memóriát, cserébe a teljes hossz `BUFSIZ` lehet (8k ha nem
-definiálták másképp), kivéve azokat a variánsokat, amik elfogadnak maxlen hossz paramétert. Kényelmi okokból támogatott a `%D`
-aminek `efi_physical_address_t` paramétert kell adni, és a memóriát dumpolja, 16 bájtos sorokban. A szám módosítókkal lehet
-több sort is dumpoltatni, például `%5D` 5 sort fog dumpolni (80 bájt).
+Fájl megnyitási módok: `"r"` olvasás, `"w"` írás, `"a"` hozzáfűzés. UEFI sajátosságok miatt, `"wd"` könyvtárat hoz létre.
 
 Speciális "eszköz fájlok", amiket meg lehet nyitni:
 

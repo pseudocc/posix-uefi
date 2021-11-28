@@ -38,7 +38,7 @@ extern time_t __mktime_efi(efi_time_t *t);
 
 void __stdio_cleanup()
 {
-#if USE_UTF8
+#ifndef UEFI_NO_UTF8
     if(__argvutf8)
         BS->FreePool(__argvutf8);
 #endif
@@ -200,7 +200,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
     efi_guid_t infGuid = EFI_FILE_INFO_GUID;
     efi_file_info_t info;
     uintn_t fsiz = (uintn_t)sizeof(efi_file_info_t), par, i;
-#if USE_UTF8
+#ifndef UEFI_NO_UTF8
     wchar_t wcname[BUFSIZ];
 #endif
     if(!__filename || !*__filename || !__modes || !*__modes) {
@@ -271,7 +271,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
     errno = 0;
     ret = (FILE*)malloc(sizeof(FILE));
     if(!ret) return NULL;
-#if USE_UTF8
+#ifndef UEFI_NO_UTF8
     mbstowcs((wchar_t*)&wcname, __filename, BUFSIZ - 1);
     status = __root_dir->Open(__root_dir, &ret, (wchar_t*)&wcname,
 #else
@@ -498,7 +498,7 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
     int64_t arg;
     int len, sign, i, j;
     char_t *p, *orig=dst, *end = dst + maxlen - 1, tmpstr[24], pad, n;
-#if !defined(USE_UTF8) || !USE_UTF8
+#ifdef UEFI_NO_UTF8
     char *c;
 #endif
     if(dst==NULL || fmt==NULL)
@@ -519,7 +519,7 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
             if(*fmt==CL('l')) fmt++;
             if(*fmt==CL('c')) {
                 arg = __builtin_va_arg(args, uint32_t);
-#if USE_UTF8
+#ifndef UEFI_NO_UTF8
                 if(arg<0x80) { *dst++ = arg; } else
                 if(arg<0x800) { *dst++ = ((arg>>6)&0x1F)|0xC0; *dst++ = (arg&0x3F)|0x80; } else
                 { *dst++ = ((arg>>12)&0x0F)|0xE0; *dst++ = ((arg>>6)&0x3F)|0x80; *dst++ = (arg&0x3F)|0x80; }
@@ -601,7 +601,7 @@ copystring:     if(p==NULL) {
                     }
                 }
             } else
-#if !defined(USE_UTF8) || !USE_UTF8
+#ifdef UEFI_NO_UTF8
             if(*fmt==L'S' || *fmt==L'Q') {
                 c = __builtin_va_arg(args, char*);
                 if(c==NULL) goto copystring;
@@ -702,7 +702,7 @@ int vprintf(const char_t* fmt, __builtin_va_list args)
 {
     int ret;
     wchar_t dst[BUFSIZ];
-#if USE_UTF8
+#ifndef UEFI_NO_UTF8
     char_t tmp[BUFSIZ];
     ret = vsnprintf(tmp, BUFSIZ, fmt, args);
     mbstowcs(dst, tmp, BUFSIZ - 1);
@@ -725,7 +725,7 @@ int vfprintf (FILE *__stream, const char_t *__format, __builtin_va_list args)
     wchar_t dst[BUFSIZ];
     char_t tmp[BUFSIZ];
     uintn_t ret, i;
-#if USE_UTF8
+#ifndef UEFI_NO_UTF8
     ret = vsnprintf(tmp, BUFSIZ, __format, args);
     ret = mbstowcs(dst, tmp, BUFSIZ - 1);
 #else
@@ -742,12 +742,12 @@ int vfprintf (FILE *__stream, const char_t *__format, __builtin_va_list args)
     else if(__stream == stderr)
         ST->StdErr->OutputString(ST->StdErr, (wchar_t*)&dst);
     else if(__ser && __stream == (FILE*)__ser) {
-#if !defined(USE_UTF8) || !USE_UTF8
+#ifdef UEFI_NO_UTF8
         wcstombs((char*)&tmp, dst, BUFSIZ - 1);
 #endif
         __ser->Write(__ser, &ret, (void*)&tmp);
     } else
-#if USE_UTF8
+#ifndef UEFI_NO_UTF8
         __stream->Write(__stream, &ret, (void*)&tmp);
 #else
         __stream->Write(__stream, &ret, (void*)&dst);

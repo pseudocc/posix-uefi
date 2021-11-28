@@ -1,7 +1,7 @@
 #include <uefi.h>
 
 /**
- * Print out arguments. This source can be compiled with and without USE_UTF8
+ * Print out arguments. This source can be compiled with and without UEFI_NO_UTF8
  */
 int main(int argc, char_t **argv)
 {
