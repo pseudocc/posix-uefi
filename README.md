@@ -187,6 +187,7 @@ Sets an environment variable by `name` with `data` of length `len`. On success r
 
 | Function      | Description                                                                |
 |---------------|----------------------------------------------------------------------------|
+| remove        | as usual, but might accept wide char strings                               |
 | fopen         | as usual, but might accept wide char strings, also for mode                |
 | fclose        | as usual                                                                   |
 | fflush        | as usual                                                                   |

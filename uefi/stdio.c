@@ -155,6 +155,8 @@ int __remove (const char_t *__filename, int isdir)
     uintn_t fsiz = (uintn_t)sizeof(efi_file_info_t), i;
     /* little hack to support read and write mode for Delete() without create mode */
     FILE *f = fopen(__filename, CL("@"));
+    if(errno)
+        return 1;
     if(!f || f == stdin || f == stdout || f == stderr || (__ser && f == (FILE*)__ser)) {
         errno = EBADF;
         return 1;
@@ -204,6 +206,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
 #ifndef UEFI_NO_UTF8
     wchar_t wcname[BUFSIZ];
 #endif
+    errno = 0;
     if(!__filename || !*__filename || !__modes || !*__modes) {
         errno = EINVAL;
         return NULL;
@@ -269,7 +272,6 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
         errno = ENODEV;
         return NULL;
     }
-    errno = 0;
     ret = (FILE*)malloc(sizeof(FILE));
     if(!ret) return NULL;
     /* normally write means read,write,create. But for remove (internal '@' mode), we need read,write without create */

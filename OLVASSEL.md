@@ -191,6 +191,7 @@ A `name` környezeti változó beállítása `len` hosszú `data` értékkel. Si
 
 | Funkció       | Leírás                                                                     |
 |---------------|----------------------------------------------------------------------------|
+| remove        | megszokott, de széles karakterű sztringet is elfogadhat                    |
 | fopen         | megszokott, de széles karakterű sztringet is elfogadhat, mode esetén is    |
 | fclose        | megszokott                                                                 |
 | fflush        | megszokott                                                                 |
