@@ -288,7 +288,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
 err:    __stdio_seterrno(status);
         free(ret); return NULL;
     }
-    if(__modes[0] == '@') return ret;
+    if(__modes[0] == CL('@')) return ret;
     status = ret->GetInfo(ret, &infGuid, &fsiz, &info);
     if(EFI_ERROR(status)) goto err;
     if(__modes[1] == CL('d') && !(info.Attribute & EFI_FILE_DIRECTORY)) {
