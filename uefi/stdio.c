@@ -550,8 +550,8 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
                 if(sign) {
                     tmpstr[--i]=CL('-');
                 }
-                if(len>0 && len<21) {
-                    while(i>21-len) {
+                if(len>0 && len<23) {
+                    while(i && i>23-len) {
                         tmpstr[--i]=pad;
                     }
                 }
