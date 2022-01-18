@@ -208,7 +208,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
 #endif
     errno = 0;
     if(!__filename || !*__filename || !__modes || (__modes[0] != CL('r') && __modes[0] != CL('w') && __modes[0] != CL('a') &&
-      __modes[0] != CL('*')) || (__modes[1] != CL('d') || __modes[1] != CL('+'))) {
+      __modes[0] != CL('*')) || (__modes[1] != 0 && __modes[1] != CL('d') && __modes[1] != CL('+'))) {
         errno = EINVAL;
         return NULL;
     }
