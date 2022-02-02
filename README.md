@@ -73,6 +73,7 @@ used to create a shared object and get converted into an .efi file.
 | `LDFLAGS`  | linker flags you want to use (I don't think you'll ever need this, just in case)                     |
 | `LIBS`     | additional libraries you want to link with (like "-lm", only static .a libraries allowed)            |
 | `EXTRA`    | any additional object files you might want to link with                                              |
+| `ALSO`     | additional makefile rules to be called                                                               |
 | `USE_GCC`  | set this if you want native GNU gcc + ld + objccopy instead of LLVM Clang + Lld                      |
 | `ARCH`     | the target architecture                                                                              |
 

@@ -1,6 +1,6 @@
 TARGET = elfload.efi
 SRCS = elfload.c
-EXTRA = kernel.elf
+ALSO = kernel.elf
 
 #USE_GCC=1
 include uefi/Makefile

@@ -75,6 +75,7 @@ aztán átkonvertál .efi fájllá.
 | `LDFLAGS`  | további linkelő opciók (nem hiszem, hogy valaha is szükség lesz erre, csak a teljesség kedvéért)     |
 | `LIBS`     | további függvénykönyvtárak, amikkel linkelni szeretnél (pl "-lm", csak statikus .a jöhet szóba)      |
 | `EXTRA`    | bármi további obj fájl, amit még hozzá szeretnél linkelni                                            |
+| `ALSO`     | további make szabályok futtatása                                                                     |
 | `USE_GCC`  | ha beállítod, akkor natív GNU gcc + ld + objccopy környzetet használ LLVM Clang + Lld helyett        |
 | `ARCH`     | a cél architektúra                                                                                   |
 
