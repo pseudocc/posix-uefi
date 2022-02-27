@@ -115,7 +115,7 @@ example your main() will NOT be like `main(int argc, char **argv)`, but `main(in
 the other string related libc functions (like strlen() for example) will use this wide character type too. For this reason,
 you must specify your string literals with `L""` and characters with `L''`. To handle both configurations, `char_t` type is
 defined, which is either `char` or `wchar_t`, and the `CL()` macro which might add the `L` prefix to constant literals.
-Functions that supposed to handle characters in int type (like `getchar`, `putchar`), do not truncate to unsigned char,
+Functions that are supposed to handle characters in int type (like `getchar`, `putchar`), do not truncate to unsigned char,
 rather to wchar_t.
 
 Sadly UEFI has no concept of reallocation. AllocatePool does not accept input, and there's no way to query the size of an
