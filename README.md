@@ -11,10 +11,10 @@ API for your UEFI application.
 ------------------------------------------------------------------------------------------------------------------------
 
 NOTE: a smartypants on reddit is worried that I'm supposedly "hiding something" because of the use of `-Wno-builtin-declaration-mismatch`
-flag. Here's my answer to you: **I hide nothing**, that flag is only needed because you can disable transparent UTF-8 convertion.
-You see, under the hood UEFI uses 16 bit characters, and for example `strlen(wchar_t *str)` or `main(int argc, wchar_t *argv)`
-isn't eaxctly POSIX-standard, that's why there's a need for that flag. You should know that had you have spent more time learning
-or just *reading this README* instead of falsely accusing others on reddit.
+(gcc) and `-Wno-incompatible-library-redeclaration` (Clang) flags. **Here's my answer to you: I hide nothing**, that flag is only
+needed because you can disable transparent UTF-8 convertion. You see, under the hood UEFI uses 16 bit characters, and for example
+`strlen(wchar_t *str)` or `main(int argc, wchar_t *argv)` isn't eaxctly POSIX-standard, that's why there's a need for that flag.
+You should know that had you have spent more time learning or just *reading this README* instead of falsely accusing others on reddit.
 
 ------------------------------------------------------------------------------------------------------------------------
 
