@@ -95,7 +95,7 @@ void *memmem(const void *haystack, size_t hl, const void *needle, size_t nl)
 {
     uint8_t *c = (uint8_t*)haystack;
     if(!haystack || !needle || !hl || !nl || nl > hl) return NULL;
-    hl -= nl;
+    hl -= nl - 1;
     while(hl) {
         if(!memcmp(c, needle, nl)) return c;
         c++; hl--;
