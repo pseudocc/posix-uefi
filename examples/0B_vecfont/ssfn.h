@@ -95,6 +95,13 @@ typedef unsigned long int   uint64_t;
 #define SSFN_FRAG_HINTING       4
 
 /* main SSFN header, 32 bytes */
+#ifndef _MSC_VER
+#define _pack __attribute__((packed))
+#else
+#define _pack
+#pragma pack(push)
+#pragma pack(1)
+#endif
 typedef struct {
     uint8_t     magic[4];               /* SSFN magic bytes */
     uint32_t    size;                   /* total size in bytes */
@@ -109,7 +116,10 @@ typedef struct {
     uint32_t    ligature_offs;          /* ligatures table offset */
     uint32_t    kerning_offs;           /* kerning table offset */
     uint32_t    cmap_offs;              /* color map offset */
-} __attribute__((packed)) ssfn_font_t;
+} _pack ssfn_font_t;
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
 
 /***** renderer API *****/
 #define SSFN_FAMILY_ANY      0xff       /* select the first loaded font */
@@ -125,6 +135,7 @@ typedef struct {
 #define SSFN_STYLE_NOHINTING 1024       /* no auto hinting grid (not used as of now) */
 #define SSFN_STYLE_RTL       2048       /* render right-to-left */
 #define SSFN_STYLE_ABS_SIZE  4096       /* scale absoulte height */
+#define SSFN_STYLE_NOSMOOTH  8192       /* no edge-smoothing for bitmaps */
 
 /* error codes */
 #define SSFN_OK                 0       /* success */
@@ -355,14 +366,21 @@ static uint8_t *_ssfn_c(const ssfn_font_t *font, const char *str, int *len, uint
     if(font->ligature_offs) {
         for(l = (uint16_t*)((uint8_t*)font + font->ligature_offs), i = 0; l[i] && u == -1U; i++) {
             for(ptr = (uint8_t*)font + l[i], s = (uint8_t*)str; *ptr && *ptr == *s; ptr++, s++);
-            if(!*ptr) { u = SSFN_LIG_FIRST + i; *len = (int)(s - (uint8_t*)str); break; }
+            if(!*ptr) { u = SSFN_LIG_FIRST + i; break; }
         }
     }
     if(u == -1U) {
-        s = (uint8_t*)str;
-        u = ssfn_utf8((char**)&s);
-        *len = (int)(s - (uint8_t*)str);
+        /* inline ssfn_utf8 to workaround -O2 bug in gcc 11.1 */
+        s = (uint8_t*)str; u = *s;
+        if((*s & 128) != 0) {
+            if(!(*s & 32)) { u = ((*s & 0x1F)<<6)|(*(s+1) & 0x3F); s++; } else
+            if(!(*s & 16)) { u = ((*s & 0xF)<<12)|((*(s+1) & 0x3F)<<6)|(*(s+2) & 0x3F); s += 2; } else
+            if(!(*s & 8)) { u = ((*s & 0x7)<<18)|((*(s+1) & 0x3F)<<12)|((*(s+2) & 0x3F)<<6)|(*(s+3) & 0x3F); s += 3; }
+            else u = 0;
+        }
+        s++;
     }
+    *len = (int)(s - (uint8_t*)str);
     *unicode = u;
     for(ptr = (uint8_t*)font + font->characters_offs, i = 0; i < 0x110000; i++) {
         if(ptr[0] == 0xFF) { i += 65535; ptr++; }
@@ -626,10 +644,7 @@ static int _ssfn__parse_huffman_block(_ssfn__zbuf *a)
       } else {
          unsigned char *p;
          int len,dist;
-         if (z == 256) {
-            a->zout = zout;
-            return 1;
-         }
+         if (z == 256) { a->zout = zout; return 1; }
          z -= 257;
          len = _ssfn__zlength_base[z];
          if (_ssfn__zlength_extra[z]) len += _ssfn__zreceive(a, _ssfn__zlength_extra[z]);
@@ -685,11 +700,9 @@ static int _ssfn__compute_huffman_codes(_ssfn__zbuf *a)
             c = _ssfn__zreceive(a,2)+3;
             if (n == 0) return 0;
             fill = lencodes[n-1];
-         } else if (c == 17)
-            c = _ssfn__zreceive(a,3)+3;
-         else {
-            c = _ssfn__zreceive(a,7)+11;
-         }
+         } else
+         if (c == 17) c = _ssfn__zreceive(a,3)+3;
+         else { c = _ssfn__zreceive(a,7)+11; }
          if (ntot - n < c) return 0;
          SSFN_memset(lencodes+n, fill, c);
          n += c;
@@ -731,12 +744,12 @@ static unsigned char _ssfn__zdefault_length[288], _ssfn__zdefault_distance[32];
 static void _ssfn__init_zdefaults(void)
 {
    int i;
-   for (i=0; i <= 143; ++i)     _ssfn__zdefault_length[i]   = 8;
-   for (   ; i <= 255; ++i)     _ssfn__zdefault_length[i]   = 9;
-   for (   ; i <= 279; ++i)     _ssfn__zdefault_length[i]   = 7;
-   for (   ; i <= 287; ++i)     _ssfn__zdefault_length[i]   = 8;
+   for (i=0; i <= 143; ++i) _ssfn__zdefault_length[i] = 8;
+   for (   ; i <= 255; ++i) _ssfn__zdefault_length[i] = 9;
+   for (   ; i <= 279; ++i) _ssfn__zdefault_length[i] = 7;
+   for (   ; i <= 287; ++i) _ssfn__zdefault_length[i] = 8;
 
-   for (i=0; i <=  31; ++i)     _ssfn__zdefault_distance[i] = 5;
+   for (i=0; i <=  31; ++i) _ssfn__zdefault_distance[i] = 5;
 }
 
 static int _ssfn__parse_zlib(_ssfn__zbuf *a)
@@ -747,11 +760,9 @@ static int _ssfn__parse_zlib(_ssfn__zbuf *a)
    do {
       fin = _ssfn__zreceive(a,1);
       type = _ssfn__zreceive(a,2);
-      if (type == 0) {
-         if (!_ssfn__parse_uncompressed_block(a)) return 0;
-      } else if (type == 3) {
-         return 0;
-      } else {
+      if (type == 0) { if (!_ssfn__parse_uncompressed_block(a)) return 0; }
+      else if (type == 3) { return 0; }
+      else {
          if (type == 1) {
             if (!_ssfn__zbuild_huffman(&a->z_length  , _ssfn__zdefault_length  , 288)) return 0;
             if (!_ssfn__zbuild_huffman(&a->z_distance, _ssfn__zdefault_distance,  32)) return 0;
@@ -770,16 +781,9 @@ char *_ssfn_zlib_decode(const char *buffer)
    char *p = (char *) SSFN_realloc(NULL, 8);
    if (p == NULL) return NULL;
    a.zbuffer = (unsigned char *) buffer;
-   a.zout_start = p;
-   a.zout       = p;
-   a.zout_end   = p + 8;
+   a.zout_start = p; a.zout = p; a.zout_end = p + 8;
    _ssfn__init_zdefaults();
-   if (_ssfn__parse_zlib(&a)) {
-      return a.zout_start;
-   } else {
-      SSFN_free(a.zout_start);
-      return NULL;
-   }
+   if (_ssfn__parse_zlib(&a)) { return a.zout_start; } else { SSFN_free(a.zout_start); return NULL; }
 }
 #endif /* if !SSFN_MAXLINES */
 
@@ -926,7 +930,7 @@ int ssfn_select(ssfn_t *ctx, int family, const char *name, int style, int size)
 #ifndef SSFN_MAXLINES
     _ssfn_fc(ctx);
 #endif
-    if((style & ~0x1FFF)) return SSFN_ERR_BADSTYLE;
+    if((style & ~0x3FFF)) return SSFN_ERR_BADSTYLE;
     if(size < 8 || size > SSFN_SIZE_MAX) return SSFN_ERR_BADSIZE;
 
     if(family == SSFN_FAMILY_BYNAME) {
@@ -970,12 +974,15 @@ int ssfn_render(ssfn_t *ctx, ssfn_buf_t *dst, const char *str)
     uint16_t r[640];
     uint32_t unicode, P, O, *Op, *Ol;
     unsigned long int sR, sG, sB, sA;
-    int ret = 0, i, j, k, l, p, m, n, o, s, x, y, w, h, a, A, b, B, nr, uix, uax;
+    int ret = 0, i, j, k, l, p, m, n, o, s, x, y, w, h, H, a, A, b, B, nr, uix, uax;
     int ox, oy, y0, y1, Y0, Y1, x0, x1, X0, X1, X2, xs, ys, yp, pc, fB, fG, fR, fA, bB, bG, bR, dB, dG, dR, dA;
 #ifdef SSFN_PROFILING
     struct timeval tv0, tv1, tvd;
     gettimeofday(&tv0, NULL);
 #endif
+#define PUTPIXEL  O = *Ol;bR = (O >> (16 - cs)) & 0xFF; bG = (O >> 8) & 0xFF; bB = (O >> cs) & 0xFF;\
+    bB += ((fB - bB) * fA) >> 8; bG += ((fG - bG) * fA) >> 8; bR += ((fR - bR) * fA) >> 8;\
+    *Ol = (fA << 24) | (bR << (16 - cs)) | (bG << 8) | (bB << cs);
 
     if(!ctx || !str) return SSFN_ERR_INVINP;
     if(!*str) return 0;
@@ -1034,11 +1041,11 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
     if(!ctx->f || !ctx->f->height || !ctx->size) return SSFN_ERR_NOFACE;
     if((unicode >> 16) > 0x10) return SSFN_ERR_INVINP;
     ctx->rc = (ssfn_chr_t*)ptr; ptr += sizeof(ssfn_chr_t);
+    H = (ctx->style & SSFN_STYLE_ABS_SIZE) || SSFN_TYPE_FAMILY(ctx->f->type) == SSFN_FAMILY_MONOSPACE || !ctx->f->baseline ?
+        ctx->size : ctx->size * ctx->f->height / ctx->f->baseline;
 
 #ifdef SSFN_PROFILING
-    gettimeofday(&tv1, NULL);
-    tvd.tv_sec = tv1.tv_sec - tv0.tv_sec;
-    tvd.tv_usec = tv1.tv_usec - tv0.tv_usec;
+    gettimeofday(&tv1, NULL); tvd.tv_sec = tv1.tv_sec - tv0.tv_sec; tvd.tv_usec = tv1.tv_usec - tv0.tv_usec;
     if(tvd.tv_usec < 0) { tvd.tv_sec--; tvd.tv_usec += 1000000L; }
     ctx->lookup += tvd.tv_sec * 1000000L + tvd.tv_usec;
     memcpy(&tv0, &tv1, sizeof(struct timeval));
@@ -1051,7 +1058,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
     } else
 #endif
     {
-        h = ctx->style & SSFN_STYLE_NOAA ? ctx->size : (ctx->size > ctx->f->height ? (ctx->size + 4) & ~3 : ctx->f->height);
+        h = ctx->style & SSFN_STYLE_NOAA ? H : (ctx->size > ctx->f->height ? (ctx->size + 4) & ~3 : ctx->f->height);
         ci = (ctx->style & SSFN_STYLE_ITALIC) && !(SSFN_TYPE_STYLE(ctx->f->type) & SSFN_STYLE_ITALIC);
         cb = (ctx->style & SSFN_STYLE_BOLD) && !(SSFN_TYPE_STYLE(ctx->f->type) & SSFN_STYLE_BOLD) ? (ctx->f->height+64)>>6 : 0;
         w = (ctx->rc->w * h + ctx->f->height - 1) / ctx->f->height;
@@ -1097,14 +1104,8 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                 for(i = 0; i < j; i++) {
                     k = (frg[0] << SSFN_PREC) * h / ctx->f->height + x; m = (frg[1] << SSFN_PREC) * h / ctx->f->height + y;
                     switch((tmp[i >> 2] >> ((i & 3) << 1)) & 3) {
-                        case SSFN_CONTOUR_MOVE:
-                            ctx->mx = ctx->lx = k; ctx->my = ctx->ly = m;
-                            frg += 2;
-                        break;
-                        case SSFN_CONTOUR_LINE:
-                            _ssfn_l(ctx, p << SSFN_PREC, h << SSFN_PREC, k, m);
-                            frg += 2;
-                        break;
+                        case SSFN_CONTOUR_MOVE: ctx->mx = ctx->lx = k; ctx->my = ctx->ly = m; frg += 2; break;
+                        case SSFN_CONTOUR_LINE: _ssfn_l(ctx, p << SSFN_PREC, h << SSFN_PREC, k, m); frg += 2; break;
                         case SSFN_CONTOUR_QUAD:
                             a = (frg[2] << SSFN_PREC) * h / ctx->f->height + x; A = (frg[3] << SSFN_PREC) * h / ctx->f->height + y;
                             _ssfn_b(ctx, p << SSFN_PREC,h << SSFN_PREC, ctx->lx,ctx->ly, ((a-ctx->lx)/2)+ctx->lx,
@@ -1120,11 +1121,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                     }
                 }
                 /* close path */
-                if(ctx->mx != ctx->lx || ctx->my != ctx->ly) {
-                    ctx->p[ctx->np+0] = ctx->mx;
-                    ctx->p[ctx->np+1] = ctx->my;
-                    ctx->np += 2;
-                }
+                if(ctx->mx != ctx->lx || ctx->my != ctx->ly) { ctx->p[ctx->np+0] = ctx->mx; ctx->p[ctx->np+1] = ctx->my; ctx->np += 2; }
                 /* add rasterized vector layers to cached glyph */
                 if(ctx->np > 4) {
                     for(b = A = B = o = 0; b < h; b++, B += p) {
@@ -1181,7 +1178,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                         }
                     }
                 }
-                if(!(ctx->style & SSFN_STYLE_NOAA)) {
+                if(!(ctx->style & (SSFN_STYLE_NOAA|SSFN_STYLE_NOSMOOTH))) {
                     m = color == 0xFD ? 0xFC : 0xFD; o = y * p + p + x;
                     for(k = h; k > ctx->f->height + 4; k -= 2*ctx->f->height) {
                         for(j = 1, l = o; j < a - 1; j++, l += p)
@@ -1225,19 +1222,10 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
 #ifdef SSFN_DEBUGGLYPH
         printf("\nU+%06X size %d p %d h %d base %d under %d overlap %d ascender %d descender %d advance x %d advance y %d cb %d\n",
             unicode, ctx->size,p,h,ctx->f->baseline,ctx->f->underline,ctx->g->o,ctx->g->a,ctx->g->d,ctx->g->x,ctx->g->y,cb);
-        for(j = 0; j < h; j++) {
-            printf("%3d: ", j);
-            for(i = 0; i < p; i++) {
-                if(ctx->g->data[j*p+i] == 0xFF) printf(j == ctx->g->a ? "_" : ".");
-                else printf("%x", ctx->g->data[j*p+i] & 0xF);
-            }
-            printf("\n");
-        }
+        for(j = 0; j < h; j++) { printf("%3d: ", j); for(i = 0; i < p; i++) { if(ctx->g->data[j*p+i] == 0xFF) printf(j == ctx->g->a ? "_" : "."); else printf("%x", ctx->g->data[j*p+i] & 0xF); } printf("\n"); }
 #endif
 #ifdef SSFN_PROFILING
-        gettimeofday(&tv1, NULL);
-        tvd.tv_sec = tv1.tv_sec - tv0.tv_sec;
-        tvd.tv_usec = tv1.tv_usec - tv0.tv_usec;
+        gettimeofday(&tv1, NULL); tvd.tv_sec = tv1.tv_sec - tv0.tv_sec; tvd.tv_usec = tv1.tv_usec - tv0.tv_usec;
         if(tvd.tv_usec < 0) { tvd.tv_sec--; tvd.tv_usec += 1000000L; }
         ctx->raster += tvd.tv_sec * 1000000L + tvd.tv_usec;
         memcpy(&tv0, &tv1, sizeof(struct timeval));
@@ -1245,8 +1233,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
     }
     if(dst) {
         /* blit glyph from cache into buffer */
-        h = (ctx->style & SSFN_STYLE_ABS_SIZE) || SSFN_TYPE_FAMILY(ctx->f->type) == SSFN_FAMILY_MONOSPACE || !ctx->f->baseline ?
-            ctx->size : ctx->size * ctx->f->height / ctx->f->baseline;
+        h = H;
         if(h > ctx->line) ctx->line = h;
         w = ctx->g->p * h / ctx->g->h;
         s = ((ctx->g->x - ctx->g->o) * h + ctx->f->height - 1) / ctx->f->height;
@@ -1314,6 +1301,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                         }
                     }
                     if(m) { sR /= m; sG /= m; sB /= m; sA /= m; } else { sR >>= 8; sG >>= 8; sB >>= 8; sA >>= 8; }
+                    if(ctx->style & SSFN_STYLE_NOAA) sA = sA > 127 ? 255 : 0;
                     if(sA > 15) {
                         *Ol = ((sA > 255 ? 255 : sA) << 24) | ((sR > 255 ? 255 : sR) << (16 - cs)) |
                             ((sG > 255 ? 255 : sG) << 8) | ((sB > 255 ? 255 : sB) << cs);
@@ -1330,14 +1318,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                     if(dst->y + y - oy < 0) continue;
                     for (Ol = Op, x = 0; x <= k && dst->x + x - ox < j; x++, Ol++) {
                         if(dst->x + x - ox < 0 || (x > uix && x < uax)) continue;
-                        O = *Ol;
-                        bR = (O >> (16 - cs)) & 0xFF;
-                        bG = (O >> 8) & 0xFF;
-                        bB = (O >> cs) & 0xFF;
-                        bB += ((fB - bB) * fA) >> 8;
-                        bG += ((fG - bG) * fA) >> 8;
-                        bR += ((fR - bR) * fA) >> 8;
-                        *Ol = (fA << 24) | (bR << (16 - cs)) | (bG << 8) | (bB << cs);
+                        PUTPIXEL;
                     }
                 }
             }
@@ -1348,21 +1329,12 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                     if(dst->y + y - oy < 0) continue;
                     for (Ol = Op, x = 0; x <= k && dst->x + x - ox < j; x++, Ol++) {
                         if(dst->x + x - ox < 0) continue;
-                        O = *Ol;
-                        bR = (O >> (16 - cs)) & 0xFF;
-                        bG = (O >> 8) & 0xFF;
-                        bB = (O >> cs) & 0xFF;
-                        bB += ((fB - bB) * fA) >> 8;
-                        bG += ((fG - bG) * fA) >> 8;
-                        bR += ((fR - bR) * fA) >> 8;
-                        *Ol = (fA << 24) | (bR << (16 - cs)) | (bG << 8) | (bB << cs);
+                        PUTPIXEL;
                     }
                 }
             }
 #ifdef SSFN_PROFILING
-            gettimeofday(&tv1, NULL);
-            tvd.tv_sec = tv1.tv_sec - tv0.tv_sec;
-            tvd.tv_usec = tv1.tv_usec - tv0.tv_usec;
+            gettimeofday(&tv1, NULL); tvd.tv_sec = tv1.tv_sec - tv0.tv_sec;tvd.tv_usec = tv1.tv_usec - tv0.tv_usec;
             if(tvd.tv_usec < 0) { tvd.tv_sec--; tvd.tv_usec += 1000000L; }
             ctx->blit += tvd.tv_sec * 1000000L + tvd.tv_usec;
             memcpy(&tv0, &tv1, sizeof(struct timeval));
@@ -1384,14 +1356,12 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                 frg = (uint8_t*)ctx->f +  m;
                 if((frg[0] & 0xE0) == 0xC0) {
                     k = (((frg[0] & 0x1F) << 8) | frg[1]) + 1; frg += 2;
-                    /* check if there's a kerning group for the next code point */
                     while(k--) {
                         m = ((frg[2] & 0xF) << 16) | (frg[1] << 8) | frg[0];
                         if(P >= (uint32_t)m && P <= (uint32_t)(((frg[5] & 0xF) << 16) | (frg[4] << 8) | frg[3])) {
                             P -= m;
                             m = ctx->f->kerning_offs + ((((frg[2] >> 4) & 0xF) << 24) | (((frg[5] >> 4) & 0xF) << 16) |
                                 (frg[7] << 8) | frg[6]);
-                            /* decode RLE compressed offsets */
                             tmp = (uint8_t*)ctx->f + m;
                             while(tmp < (uint8_t*)ctx->f + ctx->f->size - 4) {
                                 if((tmp[0] & 0x7F) < P) {
@@ -1407,12 +1377,10 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                         }
                         frg += 8;
                     }
-                } /* if kerning fragment */
+                }
             }
 #ifdef SSFN_PROFILING
-            gettimeofday(&tv1, NULL);
-            tvd.tv_sec = tv1.tv_sec - tv0.tv_sec;
-            tvd.tv_usec = tv1.tv_usec - tv0.tv_usec;
+            gettimeofday(&tv1, NULL); tvd.tv_sec = tv1.tv_sec - tv0.tv_sec; tvd.tv_usec = tv1.tv_usec - tv0.tv_usec;
             if(tvd.tv_usec < 0) { tvd.tv_sec--; tvd.tv_usec += 1000000L; }
             ctx->kern += tvd.tv_sec * 1000000L + tvd.tv_usec;
 #endif
@@ -1454,16 +1422,8 @@ int ssfn_bbox(ssfn_t *ctx, const char *str, int *w, int *h, int *left, int *top)
     }
     if((ctx->style & SSFN_STYLE_ITALIC) && !(SSFN_TYPE_STYLE(ctx->f->type) & SSFN_STYLE_ITALIC))
         buf.x +=  ctx->size / SSFN_ITALIC_DIV - l;
-    if(ctx->g->x) {
-        *w = buf.x;
-        *h = ctx->line;
-        *left = l;
-        *top = t;
-    } else {
-        *w = buf.w;
-        *h = buf.y;
-        *top = *left = 0;
-    }
+    if(ctx->g->x) { *w = buf.x; *h = ctx->line; *left = l; *top = t; }
+    else { *w = buf.w; *h = buf.y; *top = *left = 0; }
     return SSFN_OK;
 }
 
@@ -1535,9 +1495,6 @@ int ssfn_putc(uint32_t unicode)
 
     if(!ssfn_src || ssfn_src->magic[0] != 'S' || ssfn_src->magic[1] != 'F' || ssfn_src->magic[2] != 'N' ||
         ssfn_src->magic[3] != '2' || !ssfn_dst.ptr || !ssfn_dst.p) return SSFN_ERR_INVINP;
-    if(unicode == '\r' || unicode == '\n') {
-        ssfn_dst.x = 0; if(unicode == '\n') { ssfn_dst.y += ssfn_src->height; } return SSFN_OK;
-    }
     w = ssfn_dst.w < 0 ? -ssfn_dst.w : ssfn_dst.w;
     for(ptr = (uint8_t*)ssfn_src + ssfn_src->characters_offs, i = 0; i < 0x110000; i++) {
         if(ptr[0] == 0xFF) { i += 65535; ptr++; }
@@ -1545,8 +1502,22 @@ int ssfn_putc(uint32_t unicode)
         else if((ptr[0] & 0xC0) == 0x80) { j = (ptr[0] & 0x3F); i += j; ptr++; }
         else { if((uint32_t)i == unicode) { chr = ptr; break; } ptr += 6 + ptr[1] * (ptr[0] & 0x40 ? 6 : 5); }
     }
+#ifdef SSFN_CONSOLEBITMAP_CONTROL
+    i = ssfn_src->height; j = ssfn_dst.h - i - (ssfn_dst.h % i);
+    if(chr && w) {
+        if(unicode == '\t') ssfn_dst.x -= ssfn_dst.x % chr[4];
+        if(ssfn_dst.x + chr[4] > w) { ssfn_dst.x = 0; ssfn_dst.y += i; }
+    }
+    if(unicode == '\n') ssfn_dst.y += i;
+    if(j > 0 && ssfn_dst.y > j) {
+        ssfn_dst.y = j;
+        for(k = 0; k < j; k++)
+            for(l = 0; l < ssfn_dst.p; l++) ssfn_dst.ptr[k * ssfn_dst.p + l] = ssfn_dst.ptr[(k + i) * ssfn_dst.p + l];
+    }
+    if(unicode == '\r' || unicode == '\n') { ssfn_dst.x = 0; return SSFN_OK; }
+#endif
     if(!chr) return SSFN_ERR_NOGLYPH;
-    ptr = chr + 6; o = (SSFN_PIXEL*)((uint8_t*)ssfn_dst.ptr + ssfn_dst.y * ssfn_dst.p + ssfn_dst.x * sizeof(SSFN_PIXEL));
+    ptr = chr + 6; o = (SSFN_PIXEL*)(ssfn_dst.ptr + ssfn_dst.y * ssfn_dst.p + ssfn_dst.x * sizeof(SSFN_PIXEL));
     for(i = 0; i < chr[1]; i++, ptr += chr[0] & 0x40 ? 6 : 5) {
         if(ptr[0] == 255 && ptr[1] == 255) continue;
         frg = (uint8_t*)ssfn_src + (chr[0] & 0x40 ? ((ptr[5] << 24) | (ptr[4] << 16) | (ptr[3] << 8) | ptr[2]) :
@@ -1596,7 +1567,7 @@ namespace SSFN {
 
         public:
             int Load(const std::string &data);
-            int Load(const unsigned char *data, int len);
+            int Load(const void *data, int len);
             int Select(int family, const std::string &name, int style, int size);
             int Select(int family, const char *name, int style, int size);
             int Render(ssfn_buf_t *dst, const std::string &str);
@@ -1619,12 +1590,12 @@ namespace SSFN {
             ~Font() { ssfn_free(&this->ctx); }
 
         public:
-            int Load(const std::string &data) { return ssfn_load(&this->ctx,(const void*)data.data()); }
-            int Load(const unsigned char *data) { return ssfn_load(&this->ctx, (const void*)data); }
+            int Load(const std::string &data) { return ssfn_load(&this->ctx,reinterpret_cast<const void*>(data.data())); }
+            int Load(const void *data) { return ssfn_load(&this->ctx, data); }
             int Select(int family, const std::string &name, int style, int size)
                 { return ssfn_select(&this->ctx, family, (char*)name.data(), style, size); }
             int Select(int family, char *name, int style, int size) { return ssfn_select(&this->ctx,family,name,style,size); }
-            int Render(ssfn_buf_t *dst, const std::string &str) { return ssfn_render(&this->ctx,dst,(const char*)str.data()); }
+            int Render(ssfn_buf_t *dst, const std::string &str) { return ssfn_render(&this->ctx,dst,(const char *)str.data()); }
             int Render(ssfn_buf_t *dst, const char *str) { return ssfn_render(&this->ctx, dst, str); }
             int BBox(const std::string &str, int *w, int *h, int *left, int *top)
                 { return ssfn_bbox(&this->ctx, (const char *)str.data(), w, h, left, top); }
@@ -1632,12 +1603,13 @@ namespace SSFN {
             ssfn_buf_t *Text(const std::string &str, unsigned int fg)
                 { return ssfn_text(&this->ctx,(const char*)str.data(), fg); }
             ssfn_buf_t *Text(const char *str, unsigned int fg) { return ssfn_text(&this->ctx, str, fg); }
-            int LineHeight() { return this->ctx->line ? this->ctx->line : this->ctx->size; }
+            int LineHeight() { return this->ctx.line ? this->ctx.line : this->ctx.size; }
             int Mem() { return ssfn_mem(&this->ctx); }
             const std::string ErrorStr(int err) { return std::string(ssfn_error(err)); }
     };
 #endif
 }
 #endif
-/**/
+/*                                                                                                                              */
+/*                                     */
 #endif /* _SSFN_H_ */
