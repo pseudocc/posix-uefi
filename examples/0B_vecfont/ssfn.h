@@ -2,7 +2,7 @@
  * ssfn.h
  * https://gitlab.com/bztsrc/scalable-font2
  *
- * Copyright (C) 2020 bzt (bztsrc@gitlab)
+ * Copyright (C) 2020 - 2022 bzt
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,8 +78,8 @@ typedef unsigned long int   uint64_t;
 #define SSFN_STYLE_REGULAR      0
 #define SSFN_STYLE_BOLD         1
 #define SSFN_STYLE_ITALIC       2
-#define SSFN_STYLE_USRDEF1      4       /* user defined variant 1 */
-#define SSFN_STYLE_USRDEF2      8       /* user defined variant 2 */
+#define SSFN_STYLE_USRDEF1      4     /* user defined variant 1 */
+#define SSFN_STYLE_USRDEF2      8     /* user defined variant 2 */
 
 /* contour commands */
 #define SSFN_CONTOUR_MOVE       0
@@ -103,87 +103,88 @@ typedef unsigned long int   uint64_t;
 #pragma pack(1)
 #endif
 typedef struct {
-    uint8_t     magic[4];               /* SSFN magic bytes */
-    uint32_t    size;                   /* total size in bytes */
-    uint8_t     type;                   /* font family and style */
-    uint8_t     features;               /* format features and revision */
-    uint8_t     width;                  /* overall width of the font */
-    uint8_t     height;                 /* overall height of the font */
-    uint8_t     baseline;               /* horizontal baseline in grid pixels */
-    uint8_t     underline;              /* position of under line in grid pixels */
-    uint16_t    fragments_offs;         /* offset of fragments table */
-    uint32_t    characters_offs;        /* characters table offset */
-    uint32_t    ligature_offs;          /* ligatures table offset */
-    uint32_t    kerning_offs;           /* kerning table offset */
-    uint32_t    cmap_offs;              /* color map offset */
+    uint8_t     magic[4];             /* SSFN magic bytes */
+    uint32_t    size;                 /* total size in bytes */
+    uint8_t     type;                 /* font family and style */
+    uint8_t     features;             /* format features and revision */
+    uint8_t     width;                /* overall width of the font */
+    uint8_t     height;               /* overall height of the font */
+    uint8_t     baseline;             /* horizontal baseline in grid pixels */
+    uint8_t     underline;            /* position of under line in grid pixels */
+    uint16_t    fragments_offs;       /* offset of fragments table */
+    uint32_t    characters_offs;      /* characters table offset */
+    uint32_t    ligature_offs;        /* ligatures table offset */
+    uint32_t    kerning_offs;         /* kerning table offset */
+    uint32_t    cmap_offs;            /* color map offset */
 } _pack ssfn_font_t;
 #ifdef _MSC_VER
 #pragma pack(pop)
 #endif
 
 /***** renderer API *****/
-#define SSFN_FAMILY_ANY      0xff       /* select the first loaded font */
-#define SSFN_FAMILY_BYNAME   0xfe       /* select font by its unique name */
+#define SSFN_FAMILY_ANY      0xff     /* select the first loaded font */
+#define SSFN_FAMILY_BYNAME   0xfe     /* select font by its unique name */
 
 /* additional styles not stored in fonts */
-#define SSFN_STYLE_UNDERLINE   16       /* under line glyph */
-#define SSFN_STYLE_STHROUGH    32       /* strike through glyph */
-#define SSFN_STYLE_NOAA        64       /* no anti-aliasing */
-#define SSFN_STYLE_NOKERN     128       /* no kerning */
-#define SSFN_STYLE_NODEFGLYPH 256       /* don't draw default glyph */
-#define SSFN_STYLE_NOCACHE    512       /* don't cache rasterized glyph */
-#define SSFN_STYLE_NOHINTING 1024       /* no auto hinting grid (not used as of now) */
-#define SSFN_STYLE_RTL       2048       /* render right-to-left */
-#define SSFN_STYLE_ABS_SIZE  4096       /* scale absoulte height */
-#define SSFN_STYLE_NOSMOOTH  8192       /* no edge-smoothing for bitmaps */
+#define SSFN_STYLE_UNDERLINE   16     /* under line glyph */
+#define SSFN_STYLE_STHROUGH    32     /* strike through glyph */
+#define SSFN_STYLE_NOAA        64     /* no anti-aliasing */
+#define SSFN_STYLE_NOKERN     128     /* no kerning */
+#define SSFN_STYLE_NODEFGLYPH 256     /* don't draw default glyph */
+#define SSFN_STYLE_NOCACHE    512     /* don't cache rasterized glyph */
+#define SSFN_STYLE_NOHINTING 1024     /* no auto hinting grid (not used as of now) */
+#define SSFN_STYLE_RTL       2048     /* render right-to-left */
+#define SSFN_STYLE_ABS_SIZE  4096     /* scale absoulte height */
+#define SSFN_STYLE_NOSMOOTH  8192     /* no edge-smoothing for bitmaps */
+#define SSFN_STYLE_A        16384     /* keep original alpha channel */
 
 /* error codes */
-#define SSFN_OK                 0       /* success */
-#define SSFN_ERR_ALLOC         -1       /* allocation error */
-#define SSFN_ERR_BADFILE       -2       /* bad SSFN file format */
-#define SSFN_ERR_NOFACE        -3       /* no font face selected */
-#define SSFN_ERR_INVINP        -4       /* invalid input */
-#define SSFN_ERR_BADSTYLE      -5       /* bad style */
-#define SSFN_ERR_BADSIZE       -6       /* bad size */
-#define SSFN_ERR_NOGLYPH       -7       /* glyph (or kerning info) not found */
+#define SSFN_OK                 0     /* success */
+#define SSFN_ERR_ALLOC         -1     /* allocation error */
+#define SSFN_ERR_BADFILE       -2     /* bad SSFN file format */
+#define SSFN_ERR_NOFACE        -3     /* no font face selected */
+#define SSFN_ERR_INVINP        -4     /* invalid input */
+#define SSFN_ERR_BADSTYLE      -5     /* bad style */
+#define SSFN_ERR_BADSIZE       -6     /* bad size */
+#define SSFN_ERR_NOGLYPH       -7     /* glyph (or kerning info) not found */
 
-#define SSFN_SIZE_MAX         192       /* biggest size we can render */
-#define SSFN_ITALIC_DIV         4       /* italic angle divisor, glyph top side pushed width / this pixels */
-#define SSFN_PREC               4       /* precision in bits */
+#define SSFN_SIZE_MAX         192     /* biggest size we can render */
+#define SSFN_ITALIC_DIV         4     /* italic angle divisor, glyph top side pushed width / this pixels */
+#define SSFN_PREC               4     /* precision in bits */
 
 /* destination frame buffer context */
 typedef struct {
-    uint8_t *ptr;                       /* pointer to the buffer */
-    int16_t w;                          /* width (positive: ARGB, negative: ABGR pixels) */
-    int16_t h;                          /* height */
-    uint16_t p;                         /* pitch, bytes per line */
-    int16_t x;                          /* cursor x */
-    int16_t y;                          /* cursor y */
-    uint32_t fg;                        /* foreground color */
-    uint32_t bg;                        /* background color */
+    uint8_t *ptr;                     /* pointer to the buffer */
+    int w;                            /* width (positive: ARGB, negative: ABGR pixels) */
+    int h;                            /* height */
+    uint16_t p;                       /* pitch, bytes per line */
+    int x;                            /* cursor x */
+    int y;                            /* cursor y */
+    uint32_t fg;                      /* foreground color */
+    uint32_t bg;                      /* background color */
 } ssfn_buf_t;
 
 /* cached bitmap struct */
 #define SSFN_DATA_MAX       ((SSFN_SIZE_MAX + 4 + (SSFN_SIZE_MAX + 4) / SSFN_ITALIC_DIV) << 8)
 typedef struct {
-    uint16_t p;                         /* data buffer pitch, bytes per line */
-    uint8_t h;                          /* data buffer height */
-    uint8_t o;                          /* overlap of glyph, scaled to size */
-    uint8_t x;                          /* advance x, scaled to size */
-    uint8_t y;                          /* advance y, scaled to size */
-    uint8_t a;                          /* ascender, scaled to size */
-    uint8_t d;                          /* descender, scaled to size */
-    uint8_t data[SSFN_DATA_MAX];        /* data buffer */
+    uint16_t p;                       /* data buffer pitch, bytes per line */
+    uint8_t h;                        /* data buffer height */
+    uint8_t o;                        /* overlap of glyph, scaled to size */
+    uint8_t x;                        /* advance x, scaled to size */
+    uint8_t y;                        /* advance y, scaled to size */
+    uint8_t a;                        /* ascender, scaled to size */
+    uint8_t d;                        /* descender, scaled to size */
+    uint8_t data[SSFN_DATA_MAX];      /* data buffer */
 } ssfn_glyph_t;
 
 /* character metrics */
 typedef struct {
-    uint8_t t;                          /* type and overlap */
-    uint8_t n;                          /* number of fragments */
-    uint8_t w;                          /* width */
-    uint8_t h;                          /* height */
-    uint8_t x;                          /* advance x */
-    uint8_t y;                          /* advance y */
+    uint8_t t;                        /* type and overlap */
+    uint8_t n;                        /* number of fragments */
+    uint8_t w;                        /* width */
+    uint8_t h;                        /* height */
+    uint8_t x;                        /* advance x */
+    uint8_t y;                        /* advance y */
 } ssfn_chr_t;
 
 #ifdef SSFN_PROFILING
@@ -194,29 +195,29 @@ typedef struct {
 /* renderer context */
 typedef struct {
 #ifdef SSFN_MAXLINES
-    const ssfn_font_t *fnt[5][16];      /* static font registry */
+    const ssfn_font_t *fnt[5][16];    /* static font registry */
 #else
-    const ssfn_font_t **fnt[5];         /* dynamic font registry */
+    const ssfn_font_t **fnt[5];       /* dynamic font registry */
 #endif
-    const ssfn_font_t *s;               /* explicitly selected font */
-    const ssfn_font_t *f;               /* font selected by best match */
-    ssfn_glyph_t ga;                    /* glyph sketch area */
-    ssfn_glyph_t *g;                    /* current glyph pointer */
+    const ssfn_font_t *s;             /* explicitly selected font */
+    const ssfn_font_t *f;             /* font selected by best match */
+    ssfn_glyph_t ga;                  /* glyph sketch area */
+    ssfn_glyph_t *g;                  /* current glyph pointer */
 #ifdef SSFN_MAXLINES
     uint16_t p[SSFN_MAXLINES*2];
 #else
-    ssfn_glyph_t ***c[17];              /* glyph cache */
+    ssfn_glyph_t ***c[17];            /* glyph cache */
     uint16_t *p;
-    char **bufs;                        /* allocated extra buffers */
+    char **bufs;                      /* allocated extra buffers */
 #endif
-    ssfn_chr_t *rc;                     /* pointer to current character */
+    ssfn_chr_t *rc;                   /* pointer to current character */
     int numbuf, lenbuf, np, ap, ox, oy, ax;
-    int mx, my, lx, ly;                 /* move to coordinates, last coordinates */
-    int len[5];                         /* number of fonts in registry */
-    int family;                         /* required family */
-    int style;                          /* required style */
-    int size;                           /* required size */
-    int line;                           /* calculate line height */
+    int mx, my, lx, ly;               /* move to coordinates, last coordinates */
+    int len[5];                       /* number of fonts in registry */
+    int family;                       /* required family */
+    int style;                        /* required style */
+    int size;                         /* required size */
+    int line;                         /* calculate line height */
 #ifdef SSFN_PROFILING
     uint64_t lookup, raster, blit, kern;/* profiling accumulators */
 #endif
@@ -224,23 +225,23 @@ typedef struct {
 
 /***** API function protoypes *****/
 
-uint32_t ssfn_utf8(char **str);                                                     /* decode UTF-8 sequence */
+uint32_t ssfn_utf8(char **str);                                                   /* decode UTF-8 sequence */
 
 /* normal renderer */
-int ssfn_load(ssfn_t *ctx, const void *data);                                       /* add an SSFN to context */
-int ssfn_select(ssfn_t *ctx, int family, const char *name, int style, int size);    /* select font to use */
-int ssfn_render(ssfn_t *ctx, ssfn_buf_t *dst, const char *str);                     /* render a glyph to a pixel buffer */
-int ssfn_bbox(ssfn_t *ctx, const char *str, int *w, int *h, int *left, int *top);   /* get bounding box */
-ssfn_buf_t *ssfn_text(ssfn_t *ctx, const char *str, unsigned int fg);               /* renders text to a newly allocated buffer */
-int ssfn_mem(ssfn_t *ctx);                                                          /* return how much memory is used */
-void ssfn_free(ssfn_t *ctx);                                                        /* free context */
-#define ssfn_error(err) (err<0&&err>=-7?ssfn_errstr[-err]:"Unknown error")          /* return string for error code */
+int ssfn_load(ssfn_t *ctx, const void *data);                                     /* add an SSFN to context */
+int ssfn_select(ssfn_t *ctx, int family, const char *name, int style, int size);  /* select font to use */
+int ssfn_render(ssfn_t *ctx, ssfn_buf_t *dst, const char *str);                   /* render a glyph to a pixel buffer */
+int ssfn_bbox(ssfn_t *ctx, const char *str, int *w, int *h, int *left, int *top); /* get bounding box */
+ssfn_buf_t *ssfn_text(ssfn_t *ctx, const char *str, unsigned int fg);             /* renders text to a newly allocated buffer */
+int ssfn_mem(ssfn_t *ctx);                                                        /* return how much memory is used */
+void ssfn_free(ssfn_t *ctx);                                                      /* free context */
+#define ssfn_error(err) (err<0&&err>=-7?ssfn_errstr[-err]:"Unknown error")        /* return string for error code */
 extern const char *ssfn_errstr[];
 
 /* simple renderer */
-extern ssfn_font_t *ssfn_src;                                                       /* font buffer */
-extern ssfn_buf_t ssfn_dst;                                                         /* destination frame buffer */
-int ssfn_putc(uint32_t unicode);                                                    /* render console bitmap font */
+extern ssfn_font_t *ssfn_src;                                                     /* font buffer */
+extern ssfn_buf_t ssfn_dst;                                                       /* destination frame buffer */
+int ssfn_putc(uint32_t unicode);                                                  /* render console bitmap font */
 
 /***** renderer implementations *****/
 
@@ -930,7 +931,7 @@ int ssfn_select(ssfn_t *ctx, int family, const char *name, int style, int size)
 #ifndef SSFN_MAXLINES
     _ssfn_fc(ctx);
 #endif
-    if((style & ~0x3FFF)) return SSFN_ERR_BADSTYLE;
+    if((style & ~0x5FFF)) return SSFN_ERR_BADSTYLE;
     if(size < 8 || size > SSFN_SIZE_MAX) return SSFN_ERR_BADSIZE;
 
     if(family == SSFN_FAMILY_BYNAME) {
@@ -982,7 +983,7 @@ int ssfn_render(ssfn_t *ctx, ssfn_buf_t *dst, const char *str)
 #endif
 #define PUTPIXEL  O = *Ol;bR = (O >> (16 - cs)) & 0xFF; bG = (O >> 8) & 0xFF; bB = (O >> cs) & 0xFF;\
     bB += ((fB - bB) * fA) >> 8; bG += ((fG - bG) * fA) >> 8; bR += ((fR - bR) * fA) >> 8;\
-    *Ol = (fA << 24) | (bR << (16 - cs)) | (bG << 8) | (bB << cs);
+    *Ol = (ctx->style & SSFN_STYLE_A ? O & 0xFF000000 : ((uint32_t)fA << 24)) | (bR << (16 - cs)) | (bG << 8) | (bB << cs);
 
     if(!ctx || !str) return SSFN_ERR_INVINP;
     if(!*str) return 0;
@@ -1254,7 +1255,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                 w,h,ctx->rc->w,ctx->rc->h,ctx->g->p,ctx->g->h,ctx->f->height);
 #endif
             fR = (dst->fg >> 16) & 0xFF; fG = (dst->fg >> 8) & 0xFF; fB = (dst->fg >> 0) & 0xFF; fA = (dst->fg >> 24) & 0xFF;
-            bR = (dst->bg >> 16) & 0xFF; bG = (dst->bg >> 8) & 0xFF; bB = (dst->bg >> 0) & 0xFF;
+            bR = (dst->bg >> 16) & 0xFF; bG = (dst->bg >> 8) & 0xFF; bB = (dst->bg >> 0) & 0xFF; O = 0xFF000000;
             Op = (uint32_t*)(dst->ptr + dst->p * (dst->y - oy) + ((dst->x - ox) << 2));
             for (y = 0; y < h && dst->y + y - oy < dst->h; y++, Op += dst->p >> 2) {
                 if(dst->y + y - oy < 0) continue;
@@ -1303,8 +1304,8 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                     if(m) { sR /= m; sG /= m; sB /= m; sA /= m; } else { sR >>= 8; sG >>= 8; sB >>= 8; sA >>= 8; }
                     if(ctx->style & SSFN_STYLE_NOAA) sA = sA > 127 ? 255 : 0;
                     if(sA > 15) {
-                        *Ol = ((sA > 255 ? 255 : sA) << 24) | ((sR > 255 ? 255 : sR) << (16 - cs)) |
-                            ((sG > 255 ? 255 : sG) << 8) | ((sB > 255 ? 255 : sB) << cs);
+                        *Ol = (ctx->style & SSFN_STYLE_A ? O & 0xFF000000 : ((sA > 255 ? 255 : sA) << 24)) |
+                            ((sR > 255 ? 255 : sR) << (16 - cs)) | ((sG > 255 ? 255 : sG) << 8) | ((sB > 255 ? 255 : sB) << cs);
                         if(y == n) { if(uix > x) { uix = x; } if(uax < x) { uax = x; } }
                     }
                 }
@@ -1405,8 +1406,8 @@ int ssfn_bbox(ssfn_t *ctx, const char *str, int *w, int *h, int *left, int *top)
     ssfn_buf_t buf;
     int ret, f = 1, l = 0, t = 0;
 
-    if(!ctx || !str || !w || !h || !top || !left) return SSFN_ERR_INVINP;
-    *w = *h = *top = *left = 0;
+    if(!ctx || !str) return SSFN_ERR_INVINP;
+    if(w) {*w = 0;} if(h) {*h = 0;} if(top) {*top = 0;} if(left) {*left = 0;}
     if(!*str) return SSFN_OK;
     SSFN_memset(&buf, 0, sizeof(ssfn_buf_t)); ctx->line = 0;
     while((ret = ssfn_render(ctx, &buf, str))) {
@@ -1422,8 +1423,8 @@ int ssfn_bbox(ssfn_t *ctx, const char *str, int *w, int *h, int *left, int *top)
     }
     if((ctx->style & SSFN_STYLE_ITALIC) && !(SSFN_TYPE_STYLE(ctx->f->type) & SSFN_STYLE_ITALIC))
         buf.x +=  ctx->size / SSFN_ITALIC_DIV - l;
-    if(ctx->g->x) { *w = buf.x; *h = ctx->line; *left = l; *top = t; }
-    else { *w = buf.w; *h = buf.y; *top = *left = 0; }
+    if(ctx->g->x) { if(w) {*w = buf.x;} if(h) {*h = ctx->line;} if(left) {*left = l;} if(top) {*top = t;} }
+    else { if(w) {*w = buf.w;} if(h) {*h = buf.y;} if(top) {*top = 0;} if(left) {*left = 0;} }
     return SSFN_OK;
 }
 
@@ -1449,6 +1450,7 @@ ssfn_buf_t *ssfn_text(ssfn_t *ctx, const char *str, unsigned int fg)
         return buf;
     buf->ptr = (uint8_t*)SSFN_realloc(NULL, buf->w * buf->h * sizeof(uint32_t));
     SSFN_memset(buf->ptr, 0, buf->w * buf->h * sizeof(uint32_t));
+    ctx->style &= ~SSFN_STYLE_A;
     while((ret = ssfn_render(ctx, buf, str)) > 0)
         str += ret;
     if(ret != SSFN_OK) { SSFN_free(buf->ptr); SSFN_free(buf); return NULL; }
@@ -1610,6 +1612,5 @@ namespace SSFN {
 #endif
 }
 #endif
-/*                                                                                                                              */
-/*                                     */
+/*                                */
 #endif /* _SSFN_H_ */
