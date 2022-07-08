@@ -701,16 +701,22 @@ int vsprintf(char_t *dst, const char_t *fmt, __builtin_va_list args)
 
 int sprintf(char_t *dst, const char_t* fmt, ...)
 {
+    int ret;
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    return vsnprintf(dst, BUFSIZ, fmt, args);
+    ret = vsnprintf(dst, BUFSIZ, fmt, args);
+    __builtin_va_end(args);
+    return ret;
 }
 
 int snprintf(char_t *dst, size_t maxlen, const char_t* fmt, ...)
 {
+    int ret;
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    return vsnprintf(dst, maxlen, fmt, args);
+    ret = vsnprintf(dst, maxlen, fmt, args);
+    __builtin_va_end(args);
+    return ret;
 }
 
 int vprintf(const char_t* fmt, __builtin_va_list args)
@@ -730,9 +736,12 @@ int vprintf(const char_t* fmt, __builtin_va_list args)
 
 int printf(const char_t* fmt, ...)
 {
+    int ret;
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    return vprintf(fmt, args);
+    ret = vprintf(fmt, args);
+    __builtin_va_end(args);
+    return ret;
 }
 
 int vfprintf (FILE *__stream, const char_t *__format, __builtin_va_list args)
@@ -772,9 +781,12 @@ int vfprintf (FILE *__stream, const char_t *__format, __builtin_va_list args)
 
 int fprintf (FILE *__stream, const char_t *__format, ...)
 {
+    int ret;
     __builtin_va_list args;
     __builtin_va_start(args, __format);
-    return vfprintf(__stream, __format, args);
+    ret = vfprintf(__stream, __format, args);
+    __builtin_va_end(args);
+    return ret;
 }
 
 int getchar_ifany (void)
