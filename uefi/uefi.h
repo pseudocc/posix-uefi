@@ -1300,7 +1300,7 @@ extern void free (void *__ptr);
 extern void abort (void);
 extern void exit (int __status);
 /* exit Boot Services function. Returns 0 on success. */
-extern int exit_bs();
+extern int exit_bs(void);
 extern void *bsearch (const void *__key, const void *__base, size_t __nmemb, size_t __size, __compar_fn_t __compar);
 extern void qsort (void *__base, size_t __nmemb, size_t __size, __compar_fn_t __compar);
 extern int mblen (const char *__s, size_t __n);

@@ -69,7 +69,7 @@ char *__argvutf8 = NULL;
 #endif
 
 /* we only need one .o file, so use inline Assembly here */
-void bootstrap()
+void bootstrap(void)
 {
     __asm__ __volatile__ (
     /* call init in C */
