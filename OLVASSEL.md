@@ -17,7 +17,7 @@ Kétféleképp tudod integrálni a projektedbe:
 Statikus Függvénykönyvtárként
 -----------------------------
 
-Az `uefi` könyvtárban futtasd a következő parancsot
+Azonos metódus, mint a gnu-efi-nél, nem igazán javasolt. Az `uefi` könyvtárban futtasd a következő parancsot
 ```sh
 $ USE_GCC=1 make
 ```
@@ -32,11 +32,11 @@ Ezzel összeszerkesztheted a programodat, de nem fogod tudni újrafordítani, é
 maradsz.
 
 Szigorúan véve csak a **crt0.o** és a **link.ld** fájlokra van szükség, ez elég ahhoz, hogy elindítsa és meghívja az alkalmazásod
-"main()" eljárását. Viszont ahhoz, hogy a libc funkciókat (mint pl. memcmp, strcpy, malloc vagy fopen) is használhasd, linkelned
-kell a **libuefi.a** fájllal.
+"main()" eljárását. Viszont ahhoz, hogy a libc funkciókat (mint pl. memcmp, strcpy, malloc vagy fopen) használhasd, linkelned
+kell a **libuefi.a** fájllal is.
 
-Egyenlőre ez csak gcc-vel működik, mivel a Clang úgy van beállítva, hogy direktben PE fájlokat hoz létre, ezért nem tud statikus
-ELF .a fájlokat generálni, sem linkelni velük.
+Egyenlőre ez a metódus csak gcc-vel működik, mivel a Clang úgy van beállítva, hogy direktben PE fájlokat hoz létre, ezért nem tud
+statikus ELF .a fájlokat generálni, sem linkelni velük.
 
 Forrásként terjesztve
 ---------------------
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 ```
 Alapértelmezetten Clang + lld környezetet keres és állít be, ami direktben PE fájlt hoz létre konvertálás nélkül. Ha a `USE_GCC`
 környezeti változó be van állítva, akkor a hoszt natív GNU gcc + ld használatával egy megosztott függvénykönyvtárat fordít, amit
-aztán átkonvertál .efi fájllá.
+aztán átkonvertál .efi fájllá, pont, mint ahogy a gnu-efi is csinálja.
 
 ### Elérhető Makefile opciók
 
@@ -93,7 +93,8 @@ include uefi/Makefile
 ```
 A fordítási környezet konfiguráló úgy lett kialakítva, hogy akárhány architektúrával elboldogul, azonban eddig csak
 az `x86_64` crt0 lett alaposan letesztelve. Van egy `aarch64` crt0 is, de mivel nekem nincs ARM UEFI-s gépem, teszteletlen.
-Elvileg kéne működnie.
+Elvileg kéne működnie. Ha új architectúrára akarod portolni, akkor a setjmp struct-ot kell megadni az uefi.h-ban, valamint
+csinálni neki egy crt0_X.c fájlt. Ennyi. Minden más platformfüggetlenül lett megírva.
 
 ### Elérhető konfigurációs opciók
 

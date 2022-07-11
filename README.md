@@ -3,20 +3,20 @@ POSIX-UEFI
 
 <blockquote>We hate that horrible and ugly UEFI API, we want the usual POSIX!</blockquote>
 
-This is a very small build environment that helps you to develop for UEFI under Linux (and other POSIX systems). It was
-greatly inspired by [gnu-efi](https://sourceforge.net/projects/gnu-efi) (big big kudos to those guys), but it is a lot
-smaller, easier to integrate (works with LLVM Clang and GNU gcc both) and easier to use because it provides a POSIX like
-API for your UEFI application.
-
 ------------------------------------------------------------------------------------------------------------------------
 
 NOTE: a smartypants on reddit is worried that I'm supposedly "hiding something" because of the use of `-Wno-builtin-declaration-mismatch`
 (gcc) and `-Wno-incompatible-library-redeclaration` (Clang) flags. **Here's my answer to you: I hide nothing**, that flag is only
-needed because you can disable transparent UTF-8 convertion. You see, under the hood UEFI uses 16 bit characters, and for example
-`strlen(wchar_t *str)` or `main(int argc, wchar_t *argv)` isn't eaxctly POSIX-standard, that's why there's a need for that flag.
+needed because you can disable transparent UTF-8 conversion. You see, under the hood UEFI uses 16 bit characters, and for example
+`strlen(wchar_t *str)` or `main(int argc, wchar_t *argv)` isn't exactly POSIX-standard, that's why there's a need for that flag.
 You should know that had you have spent more time learning or just *reading this README* instead of falsely accusing others on reddit.
 
 ------------------------------------------------------------------------------------------------------------------------
+
+This is a very small build environment that helps you to develop for UEFI under Linux (and other POSIX systems). It was
+greatly inspired by [gnu-efi](https://sourceforge.net/projects/gnu-efi) (big big kudos to those guys), but it is a lot
+smaller, easier to integrate (works with LLVM Clang and GNU gcc both) and easier to use because it provides a POSIX like
+API for your UEFI application.
 
 An UEFI environment consist of two parts: a firmware with GUID protocol interfaces and a user library. We cannot change
 the former, but we can make the second friendlier. That's what POSIX-UEFI does for your application. It is a small API
@@ -27,7 +27,7 @@ You have two options on how to integrate it into your project:
 Distributing as Static Library
 ------------------------------
 
-In the `uefi` directory, run
+Same method as with gnu-efi, not really recommended. In the `uefi` directory, run
 ```sh
 $ USE_GCC=1 make
 ```
@@ -42,7 +42,7 @@ You can use this and link your application with it, but you won't be able to rec
 the linking and converting.
 
 Strictly speaking you'll only need **crt0.o** and **link.ld**, that will get you started and will call your application's
-"main()", but to get libc functions like memcmp, strcpy, malloc or fopen, you'll have to link with **libuefi.a**.
+"main()", but to get libc functions like memcmp, strcpy, malloc or fopen, you'll have to link with **libuefi.a** too.
 
 For now this only works with gcc, because Clang is configured in a way to directly create PE files, so it cannot create
 nor link with static ELF .a files.
@@ -70,8 +70,8 @@ int main(int argc, char **argv)
     return 0;
 }
 ```
-By default it uses Clang + lld, and PE is generated without conversion. If `USE_GCC` is set, then the host native's GNU gcc + ld
-used to create a shared object and get converted into an .efi file.
+By default it uses Clang + lld, and PE is generated directly without conversion. If `USE_GCC` is set, then the host native's
+GNU gcc + ld is used to create a shared object and get converted into an .efi file, just like how gnu-efi does.
 
 ### Available Makefile Options
 
@@ -101,7 +101,9 @@ include uefi/Makefile
 ```
 The build environment configurator was created in a way that it can handle any number of architectures, however
 only `x86_64` crt0 has been throughfully tested for now. There's an `aarch64` crt0 too, but since I don't have
-an ARM UEFI board, it hasn't been tested on real machine. Should work though.
+an ARM UEFI board, it hasn't been tested on real machine. Should work though. If you want to port it to another
+architecture, all you need is a setjmp struct in uefi.h, and an appropriate crt_X.c file. That's it. Everything
+else was coded in an architecture independent way.
 
 ### Available Configuration Options
 
