@@ -76,6 +76,7 @@ aztán átkonvertál .efi fájllá, pont, mint ahogy a gnu-efi is csinálja.
 | `LIBS`     | további függvénykönyvtárak, amikkel linkelni szeretnél (pl "-lm", csak statikus .a jöhet szóba)      |
 | `EXTRA`    | bármi további obj fájl, amit még hozzá szeretnél linkelni                                            |
 | `ALSO`     | további make szabályok futtatása                                                                     |
+| `OUTDIR`   | ha meg van adva, akkor ide generálja a projekted obj fájljait (alapértelmezetten nincs beállítva)    |
 | `USE_GCC`  | ha beállítod, akkor natív GNU gcc + ld + objccopy környzetet használ LLVM Clang + Lld helyett        |
 | `ARCH`     | a cél architektúra                                                                                   |
 
@@ -87,6 +88,7 @@ SRCS = $(wildcard *.c)
 CFLAGS = -pedantic -Wall -Wextra -Werror --std=c11 -O2
 LDFLAGS =
 LIBS = -lm
+OUTDIR = build/loader
 
 USE_GCC = 1
 include uefi/Makefile

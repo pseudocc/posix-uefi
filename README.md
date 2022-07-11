@@ -84,6 +84,7 @@ GNU gcc + ld is used to create a shared object and get converted into an .efi fi
 | `LIBS`     | additional libraries you want to link with (like "-lm", only static .a libraries allowed)            |
 | `EXTRA`    | any additional object files you might want to link with                                              |
 | `ALSO`     | additional makefile rules to be called                                                               |
+| `OUTDIR`   | if given, then your project's object files are generated into this directory (by default not set)    |
 | `USE_GCC`  | set this if you want native GNU gcc + ld + objccopy instead of LLVM Clang + Lld                      |
 | `ARCH`     | the target architecture                                                                              |
 
@@ -95,6 +96,7 @@ SRCS = $(wildcard *.c)
 CFLAGS = -pedantic -Wall -Wextra -Werror --std=c11 -O2
 LDFLAGS =
 LIBS = -lm
+OUTDIR = build/loader
 
 USE_GCC = 1
 include uefi/Makefile
