@@ -70,7 +70,7 @@ else
 ALLTARGETS = uefi/crt_$(ARCH).o uefi/libuefi.a $(OBJS) $(TARGET)
 endif
 
-all: $(OUTDIR) $(ALLTARGETS) $(EXTRA) $(ALSO)
+all: $(OUTDIR) $(ALSO) $(ALLTARGETS) $(EXTRA)
 
 ifneq ($(OUTDIR),)
 $(OUTDIR):
