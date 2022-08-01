@@ -75,18 +75,18 @@ GNU gcc + ld is used to create a shared object and get converted into an .efi fi
 
 ### Available Makefile Options
 
-| Variable   | Description                                                                                          |
-|------------|------------------------------------------------------------------------------------------------------|
-| `TARGET`   | the target application (required)                                                                    |
-| `SRCS`     | list of source files you want to compile (defaults to \*.c \*.S)                                     |
-| `CFLAGS`   | compiler flags you want to use (empty by default, like "-Wall -pedantic -std=c99")                   |
-| `LDFLAGS`  | linker flags you want to use (I don't think you'll ever need this, just in case)                     |
-| `LIBS`     | additional libraries you want to link with (like "-lm", only static .a libraries allowed)            |
-| `EXTRA`    | any additional object files you might want to link with                                              |
-| `ALSO`     | additional makefile rules to be called                                                               |
-| `OUTDIR`   | if given, then your project's object files are generated into this directory (by default not set)    |
-| `USE_GCC`  | set this if you want native GNU gcc + ld + objccopy instead of LLVM Clang + Lld                      |
-| `ARCH`     | the target architecture                                                                              |
+| Variable   | Description                                                                                                       |
+|------------|-------------------------------------------------------------------------------------------------------------------|
+| `TARGET`   | the target application (required)                                                                                 |
+| `SRCS`     | list of source files you want to compile (defaults to \*.c \*.S)                                                  |
+| `CFLAGS`   | compiler flags you want to use (empty by default, like "-Wall -pedantic -std=c99")                                |
+| `LDFLAGS`  | linker flags you want to use (I don't think you'll ever need this, just in case)                                  |
+| `LIBS`     | additional libraries you want to link with (like "-lm", only static .a libraries allowed)                         |
+| `EXTRA`    | any additional object files you might want to link with, these are also called as makefile rules before compiling |
+| `ALSO`     | additional makefile rules to be called after compiling                                                            |
+| `OUTDIR`   | if given, then your project's object files are generated into this directory (by default not set)                 |
+| `USE_GCC`  | set this if you want native GNU gcc + ld + objccopy instead of LLVM Clang + Lld                                   |
+| `ARCH`     | the target architecture                                                                                           |
 
 Here's a more advanced **Makefile** example:
 ```
