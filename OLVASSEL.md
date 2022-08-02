@@ -43,7 +43,7 @@ Forrásként terjesztve
 
 Ez a javasolt mód, mivel ez biztosít egy Makefile-t is ami megfelelően beállítja a fordítókörnyezetedet.
 
- 1. másold be a `uefi` könyvtárat a forrásfádba (vagy állíts be egy git submodule-t). Egy tucat fájl, kb. 132K összesen.
+ 1. másold be a `uefi` könyvtárat a forrásfádba (vagy állíts be egy git submodule-t és egy symlinket). Egy tucat fájl, kb. 132K összesen.
  2. csinálj egy hihetetlenül egyszerű **Makefile**-t, mint például az alábbi
  3. fordítsd le a programodat UEFI-re egy `make` hívással
 
@@ -64,6 +64,13 @@ int main(int argc, char **argv)
 Alapértelmezetten Clang + lld környezetet keres és állít be, ami direktben PE fájlt hoz létre konvertálás nélkül. Ha a `USE_GCC`
 környezeti változó be van állítva, akkor a hoszt natív GNU gcc + ld használatával egy megosztott függvénykönyvtárat fordít, amit
 aztán átkonvertál .efi fájllá, pont, mint ahogy a gnu-efi is csinálja.
+
+**MEGJEGYZÉS**: ha nem akarod az egész repót klónozni, csakis az `uefi` könyvtárat, akkor
+```
+git clone --no-checkout https://gitlab.com/bztsrc/posix-uefi.git .
+git sparse-checkout set --no-cone '/uefi/*'
+git checkout
+```
 
 ### Elérhető Makefile opciók
 

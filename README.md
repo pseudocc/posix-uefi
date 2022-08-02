@@ -52,7 +52,7 @@ Distributing as Source
 
 This is the preferred way, as it also provides a Makefile to set up your toolchain properly.
 
- 1. simply copy the `uefi` directory into your source tree (or set up a git submodule). A dozen files, about 132K in total.
+ 1. simply copy the `uefi` directory into your source tree (or set up a git submodule and a symlink). A dozen files, about 132K in total.
  2. create an extremely simple **Makefile** like the one below
  3. compile your code for UEFI by running `make`
 
@@ -72,6 +72,13 @@ int main(int argc, char **argv)
 ```
 By default it uses Clang + lld, and PE is generated directly without conversion. If `USE_GCC` is set, then the host native's
 GNU gcc + ld is used to create a shared object and get converted into an .efi file, just like how gnu-efi does.
+
+**NOTE**: if you don't want to clone this entire repo, just the `uefi` directory,
+```
+git clone --no-checkout https://gitlab.com/bztsrc/posix-uefi.git .
+git sparse-checkout set --no-cone '/uefi/*'
+git checkout
+```
 
 ### Available Makefile Options
 
