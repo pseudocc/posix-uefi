@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 ```
 Alapértelmezetten Clang + lld környezetet keres és állít be, ami direktben PE fájlt hoz létre konvertálás nélkül. Ha a `USE_GCC`
 környezeti változó be van állítva, akkor a hoszt natív GNU gcc + ld használatával egy megosztott függvénykönyvtárat fordít, amit
-aztán átkonvertál .efi fájllá, pont, mint ahogy a gnu-efi is csinálja.
+aztán objcopy-val átkonvertál .efi fájllá, pont, mint ahogy a gnu-efi is csinálja.
 
 **MEGJEGYZÉS**: ha nem akarod az egész repót klónozni, csakis az `uefi` könyvtárat, akkor
 ```
@@ -84,7 +84,7 @@ git checkout
 | `EXTRA`    | bármi további obj fájl, amit még hozzá szeretnél linkelni                                            |
 | `ALSO`     | további make szabályok futtatása                                                                     |
 | `OUTDIR`   | ha meg van adva, akkor ide generálja a projekted obj fájljait (alapértelmezetten nincs beállítva)    |
-| `USE_GCC`  | ha beállítod, akkor natív GNU gcc + ld + objccopy környzetet használ LLVM Clang + Lld helyett        |
+| `USE_GCC`  | ha beállítod, akkor natív GNU gcc + ld + objcopy környzetet használ LLVM Clang + Lld helyett        |
 | `ARCH`     | a cél architektúra                                                                                   |
 
 Itt van egy teljesebb **Makefile** példa:

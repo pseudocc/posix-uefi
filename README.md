@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 }
 ```
 By default it uses Clang + lld, and PE is generated directly without conversion. If `USE_GCC` is set, then the host native's
-GNU gcc + ld is used to create a shared object and get converted into an .efi file, just like how gnu-efi does.
+GNU gcc + ld is used to create a shared object and get converted into an .efi file with objcopy, just like how gnu-efi does.
 
 **NOTE**: if you don't want to clone this entire repo, just the `uefi` directory,
 ```
@@ -92,7 +92,7 @@ git checkout
 | `EXTRA`    | any additional object files you might want to link with, these are also called as makefile rules before compiling |
 | `ALSO`     | additional makefile rules to be called after compiling                                                            |
 | `OUTDIR`   | if given, then your project's object files are generated into this directory (by default not set)                 |
-| `USE_GCC`  | set this if you want native GNU gcc + ld + objccopy instead of LLVM Clang + Lld                                   |
+| `USE_GCC`  | set this if you want native GNU gcc + ld + objcopy instead of LLVM Clang + Lld                                   |
 | `ARCH`     | the target architecture                                                                                           |
 
 Here's a more advanced **Makefile** example:
