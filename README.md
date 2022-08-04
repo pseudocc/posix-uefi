@@ -231,7 +231,7 @@ Sets an environment variable by `name` with `data` of length `len`. On success r
 | getchar_ifany | non-blocking, returns 0 if there was no key press, UNICODE otherwise       |
 | putchar       | as usual, stdout only (no stream redirects)                                |
 
-String formating is limited; only supports padding via positive number prefixes, `%d`, `%x`, `%X`, `%c`, `%s`, `%q` and
+String formating is limited; only supports padding via positive number prefixes, `%d`, `%i`, `%x`, `%X`, `%c`, `%s`, `%q` and
 `%p` (no `%e`, `%f`, `%g`, no asterisk and dollar). When `UEFI_NO_UTF8` is defined, then formating operates on wchar_t, so
 it also supports the non-standard `%S` (printing an UTF-8 string) and `%Q` (printing an escaped UTF-8 string). These
 functions don't allocate memory, but in return the total length of the output string cannot be longer than `BUFSIZ`

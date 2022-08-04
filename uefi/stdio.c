@@ -544,7 +544,7 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
                 fmt++;
                 continue;
             } else
-            if(*fmt==CL('d')) {
+            if(*fmt==CL('d') || *fmt==CL('i')) {
                 arg = __builtin_va_arg(args, int64_t);
                 sign=0;
                 if(arg<0) {
