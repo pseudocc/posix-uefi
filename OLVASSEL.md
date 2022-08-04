@@ -224,7 +224,7 @@ A `name` környezeti változó beállítása `len` hosszú `data` értékkel. Si
 | getchar_ifany | nem blokkoló, 0-át ad vissza ha nem volt billentyű, egyébként UNICODE-ot   |
 | putchar       | megszokott, csak stdout (nincs átriányítás)                                |
 
-A sztring formázás limitált: csak pozitív számokat fogad el prefixnek, `%d`, `%x`, `%X`, `%c`, `%s`, `%q` és `%p` (nincs `%e`,
+A sztring formázás limitált: csak pozitív számokat fogad el prefixnek, `%d` és `%i`, `%x`, `%X`, `%c`, `%s`, `%q` és `%p` (nincs `%e`,
 `%f`, `%g`, nincs csillag és dollárjel). Ha a `UEFI_NO_UTF8` definiálva van, akkor a formázás wchar_t-t használ, ezért ilyenkor
 támogatott a nem szabványos `%S` (UTF-8 sztring kiírás) és `%Q` (eszképelt UTF-8 sztring kiírás) is. Ezek a funkciók nem
 foglalnak le memóriát, cserébe a teljes hossz `BUFSIZ` lehet (8k ha nem definiálták másképp), kivéve azokat a variánsokat,
