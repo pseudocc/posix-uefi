@@ -92,7 +92,7 @@ git checkout
 | `EXTRA`    | any additional object files you might want to link with, these are also called as makefile rules before compiling |
 | `ALSO`     | additional makefile rules to be called after compiling                                                            |
 | `OUTDIR`   | if given, then your project's object files are generated into this directory (by default not set)                 |
-| `USE_GCC`  | set this if you want native GNU gcc + ld + objcopy instead of LLVM Clang + Lld                                   |
+| `USE_GCC`  | set this if you want native GNU gcc + ld + objcopy instead of LLVM Clang + Lld                                    |
 | `ARCH`     | the target architecture                                                                                           |
 
 Here's a more advanced **Makefile** example:
