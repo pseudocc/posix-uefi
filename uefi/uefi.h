@@ -742,7 +742,7 @@ typedef efi_status_t (EFIAPI *efi_open_protocol_information_t)(efi_handle_t Hand
 typedef efi_status_t (EFIAPI *efi_protocols_per_handle_t)(efi_handle_t Handle, efi_guid_t ***ProtocolBuffer,
     uintn_t *ProtocolBufferCount);
 typedef efi_status_t (EFIAPI *efi_locate_handle_buffer_t)(efi_locate_search_type_t SearchType, efi_guid_t *Protocol,
-    void *SearchKey, uintn_t NoHandles, efi_handle_t **Handles);
+    void *SearchKey, uintn_t *NoHandles, efi_handle_t **Handles);
 typedef efi_status_t (EFIAPI *efi_locate_protocol_t)(efi_guid_t *Protocol, void *Registration, void **Interface);
 typedef efi_status_t (EFIAPI *efi_calculate_crc32_t)(void *Data, uintn_t DataSize, uint32_t *Crc32);
 
