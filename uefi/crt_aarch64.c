@@ -34,6 +34,7 @@
 extern int main(int argc, char_t **argv);
 
 /* definitions for elf relocations */
+#ifndef __clang__
 typedef uint64_t Elf64_Xword;
 typedef	int64_t  Elf64_Sxword;
 typedef uint64_t Elf64_Addr;
@@ -57,6 +58,7 @@ typedef struct
 } Elf64_Rel;
 #define ELF64_R_TYPE(i)     ((i) & 0xffffffff)
 #define R_AARCH64_RELATIVE  1027    /* Adjust by program base */
+#endif
 
 /* globals to store system table pointers */
 efi_handle_t IM = NULL;
@@ -198,26 +200,26 @@ efi_status_t uefi_init (
     BS->HandleProtocol(image, &lipGuid, (void **)&LIP);
     /* get command line arguments */
     status = BS->OpenProtocol(image, &shpGuid, (void **)&shp, image, NULL, EFI_OPEN_PROTOCOL_GET_PROTOCOL);
-    if(!EFI_ERROR(status) && shp) { argc = shp->Argc; argv = shp->Argv; }
+    if(!EFI_ERROR(status) && shp) { argc = (int)shp->Argc; argv = shp->Argv; }
     else {
         /* if shell 2.0 failed, fallback to shell 1.0 interface */
         status = BS->OpenProtocol(image, &shiGuid, (void **)&shi, image, NULL, EFI_OPEN_PROTOCOL_GET_PROTOCOL);
-        if(!EFI_ERROR(status) && shi) { argc = shi->Argc; argv = shi->Argv; }
+        if(!EFI_ERROR(status) && shi) { argc = (int)shi->Argc; argv = shi->Argv; }
     }
     /* call main */
 #ifndef UEFI_NO_UTF8
     if(argc && argv) {
-        ret = (argc + 1) * (sizeof(uintptr_t) + 1);
+        ret = (argc + 1) * ((int)sizeof(uintptr_t) + 1);
         for(i = 0; i < argc; i++)
             for(j = 0; argv[i] && argv[i][j]; j++)
                 ret += argv[i][j] < 0x80 ? 1 : (argv[i][j] < 0x800 ? 2 : 3);
-        status = BS->AllocatePool(LIP ? LIP->ImageDataType : EfiLoaderData, ret, (void **)&__argvutf8);
+        status = BS->AllocatePool(LIP ? LIP->ImageDataType : EfiLoaderData, (uintn_t)ret, (void **)&__argvutf8);
         if(EFI_ERROR(status) || !__argvutf8) { argc = 0; __argvutf8 = NULL; }
         else {
-            s = __argvutf8 + argc * sizeof(uintptr_t);
+            s = __argvutf8 + argc * (int)sizeof(uintptr_t);
             *((uintptr_t*)s) = (uintptr_t)0; s += sizeof(uintptr_t);
             for(i = 0; i < argc; i++) {
-                *((uintptr_t*)(__argvutf8 + i * sizeof(uintptr_t))) = (uintptr_t)s;
+                *((uintptr_t*)(__argvutf8 + i * (int)sizeof(uintptr_t))) = (uintptr_t)s;
                 for(j = 0; argv[i] && argv[i][j]; j++) {
                     if(argv[i][j]<0x80) { *s++ = argv[i][j]; } else
                     if(argv[i][j]<0x800) { *s++ = ((argv[i][j]>>6)&0x1F)|0xC0; *s++ = (argv[i][j]&0x3F)|0x80; } else

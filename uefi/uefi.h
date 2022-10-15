@@ -131,9 +131,9 @@ typedef struct {
 #ifndef __WCHAR_TYPE__
 # define __WCHAR_TYPE__ short
 #endif
-#define EFIERR(a)           (0x8000000000000000 | a)
+#define EFIERR(a)           (0x8000000000000000 | (unsigned int)(a))
 #define EFI_ERROR_MASK      0x8000000000000000
-#define EFIERR_OEM(a)       (0xc000000000000000 | a)
+#define EFIERR_OEM(a)       (0xc000000000000000 | (unsigned int)(a))
 
 #define BAD_POINTER         0xFBFBFBFBFBFBFBFB
 #define MAX_ADDRESS         0xFFFFFFFFFFFFFFFF
@@ -1416,6 +1416,7 @@ extern time_t time(time_t *__timer);
 extern unsigned int sleep (unsigned int __seconds);
 extern int usleep (unsigned long int __useconds);
 extern int unlink (const wchar_t *__filename);
+extern int rmdir (const wchar_t *__filename);
 
 #ifdef  __cplusplus
 }

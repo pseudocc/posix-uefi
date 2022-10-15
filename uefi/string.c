@@ -56,7 +56,7 @@ void *memset(void *s, int c, size_t n)
 {
     uint8_t *p=(uint8_t*)s;
     if(s && n>0) {
-        while(n--) *p++ = c;
+        while(n--) *p++ = (uint8_t)c;
     }
     return s;
 }
@@ -177,9 +177,9 @@ int strncmp(const char_t *s1, const char_t *s2, size_t n)
 
 char_t *strdup(const char_t *s)
 {
-    int i = (strlen(s)+1) * sizeof(char_t);
+    size_t i = (strlen(s)+1) * sizeof(char_t);
     char_t *s2 = (char_t *)malloc(i);
-    if(s2 != NULL) memcpy(s2, (void*)s, i);
+    if(s2 != NULL) memcpy(s2, (const void*)s, i);
     return s2;
 }
 
@@ -212,7 +212,7 @@ char_t *strstr(const char_t *haystack, const char_t *needle)
     return memmem(haystack, strlen(haystack) * sizeof(char_t), needle, strlen(needle) * sizeof(char_t));
 }
 
-char_t *_strtok_r(char_t *s, const char_t *d, char_t **p)
+static char_t *_strtok_r(char_t *s, const char_t *d, char_t **p)
 {
     int c, sc;
     char_t *tok, *sp;

@@ -32,7 +32,7 @@
 
 int errno = 0;
 static uint64_t __srand_seed = 6364136223846793005ULL;
-extern void __stdio_cleanup();
+extern void __stdio_cleanup(void);
 #ifndef UEFI_NO_TRACK_ALLOC
 static uintptr_t *__stdlib_allocs = NULL;
 static uintn_t __stdlib_numallocs = 0;
@@ -72,7 +72,7 @@ int64_t strtol (const char_t *s, char_t **__endptr, int __base)
         else if(__base == 16 && *s >= CL('A') && *s <= CL('F'))
             v += (*s)-CL('A')+10;
         s++;
-    };
+    }
     if(__endptr) *__endptr = (char_t*)s;
     return v * sign;
 }
@@ -192,7 +192,7 @@ void exit (int __status)
 
 int exit_bs()
 {
-    efi_status_t status;
+    efi_status_t status = 0;
     efi_memory_descriptor_t *memory_map = NULL;
     uintn_t cnt = 3, memory_map_size=0, map_key=0, desc_size=0;
 #ifndef UEFI_NO_TRACK_ALLOC
@@ -284,13 +284,13 @@ size_t mbstowcs (wchar_t *__pwcs, const char *__s, size_t __n)
     wchar_t *orig = __pwcs;
     if(!__s || !*__s) return 0;
     while(*__s) {
-        r = mbtowc(__pwcs, __s, __n - (__pwcs - orig));
+        r = mbtowc(__pwcs, __s, __n - (size_t)(__pwcs - orig));
         if(r < 0) return (size_t)-1;
         __pwcs++;
         __s += r;
     }
     *__pwcs = 0;
-    return __pwcs - orig;
+    return (size_t)(__pwcs - orig);
 }
 
 size_t wcstombs (char *__s, const wchar_t *__pwcs, size_t __n)
@@ -298,14 +298,14 @@ size_t wcstombs (char *__s, const wchar_t *__pwcs, size_t __n)
     int r;
     char *orig = __s;
     if(!__s || !__pwcs || !*__pwcs) return 0;
-    while(*__pwcs && (__s - orig + 4 < __n)) {
+    while(*__pwcs && ((size_t)(__s - orig + 4) < __n)) {
         r = wctomb(__s, *__pwcs);
         if(r < 0) return (size_t)-1;
         __pwcs++;
         __s += r;
     }
     *__s = 0;
-    return __s - orig;
+    return (size_t)(__s - orig);
 }
 
 void srand(unsigned int __seed)

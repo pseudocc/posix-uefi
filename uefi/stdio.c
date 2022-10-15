@@ -35,8 +35,11 @@ static efi_serial_io_protocol_t *__ser = NULL;
 static block_file_t *__blk_devs = NULL;
 static uintn_t __blk_ndevs = 0;
 extern time_t __mktime_efi(efi_time_t *t);
+void __stdio_cleanup(void);
+void __stdio_seterrno(efi_status_t status);
+int __remove (const char_t *__filename, int isdir);
 
-void __stdio_cleanup()
+void __stdio_cleanup(void)
 {
 #ifndef UEFI_NO_UTF8
     if(__argvutf8)
@@ -67,7 +70,7 @@ int fstat (FILE *__f, struct stat *__buf)
     efi_file_info_t info;
     uintn_t fsiz = (uintn_t)sizeof(efi_file_info_t);
     efi_status_t status;
-    int i;
+    uintn_t i;
 
     if(!__f || !__buf) {
         errno = EINVAL;
@@ -226,7 +229,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
         return stderr;
     }
     if(!memcmp(__filename, CL("/dev/serial"), 11 * sizeof(char_t))) {
-        par = atol(__filename + 11);
+        par = (uintn_t)atol(__filename + 11);
         if(!__ser) {
             efi_guid_t serGuid = EFI_SERIAL_IO_PROTOCOL_GUID;
             status = BS->LocateProtocol(&serGuid, NULL, (void**)&__ser);
@@ -236,7 +239,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
         return (FILE*)__ser;
     }
     if(!memcmp(__filename, CL("/dev/disk"), 9 * sizeof(char_t))) {
-        par = atol(__filename + 9);
+        par = (uintn_t)atol(__filename + 9);
         if(!__blk_ndevs) {
             efi_guid_t bioGuid = EFI_BLOCK_IO_PROTOCOL_GUID;
             efi_handle_t handles[128];
@@ -259,7 +262,7 @@ FILE *fopen (const char_t *__filename, const char_t *__modes)
                     __blk_ndevs = 0;
             }
         }
-        if(__blk_ndevs && par >= 0 && par < __blk_ndevs)
+        if(__blk_ndevs && par < __blk_ndevs)
             return (FILE*)__blk_devs[par].bio;
         errno = ENOENT;
         return NULL;
@@ -675,7 +678,7 @@ copystring:     if(p==NULL) {
                     }
                     *dst++ = CL(' '); if(dst >= end) goto zro;
                     for(i = 0; i < 16; i++) {
-                        *dst++ = (mem[i] < 32 || mem[i] >= 127 ? CL('.') : mem[i]);
+                        *dst++ = (mem[i] < 32 || mem[i] >= 127 ? CL('.') : (char_t)mem[i]);
                         if(dst >= end) goto zro;
                     }
                     *dst++ = CL('\r'); if(dst >= end) goto zro;
@@ -690,7 +693,7 @@ put:        if(*fmt == CL('\n') && (orig == dst || *(dst - 1) != CL('\r'))) *dst
         fmt++;
     }
 zro:*dst=0;
-    return dst-orig;
+    return (int)(dst-orig);
 #undef needsescape
 }
 
@@ -750,7 +753,7 @@ int vfprintf (FILE *__stream, const char_t *__format, __builtin_va_list args)
     char_t tmp[BUFSIZ];
     uintn_t ret, i;
 #ifndef UEFI_NO_UTF8
-    ret = vsnprintf(tmp, BUFSIZ, __format, args);
+    ret = (uintn_t)vsnprintf(tmp, BUFSIZ, __format, args);
     ret = mbstowcs(dst, tmp, BUFSIZ - 1);
 #else
     ret = vsnprintf(dst, BUFSIZ, __format, args);
@@ -776,7 +779,7 @@ int vfprintf (FILE *__stream, const char_t *__format, __builtin_va_list args)
 #else
         __stream->Write(__stream, &ret, (void*)&dst);
 #endif
-    return ret;
+    return (int)ret;
 }
 
 int fprintf (FILE *__stream, const char_t *__format, ...)
