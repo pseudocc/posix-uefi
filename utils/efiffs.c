@@ -93,7 +93,7 @@ void getguid(char *ptr, guid_t *guid)
 }
 
 /**
- * Parse fss type
+ * Parse ffs type
  */
 int gettype(char *str)
 {
@@ -108,7 +108,7 @@ int gettype(char *str)
     if(!memcmp(str, "EFI_FV_FILETYPE_", 16)) str += 16;
     for(i = 1; types[i] && strcmp(str, types[i]); i++);
     if(!types[i]) {
-        fprintf(stderr, "efiffs: invalid fss type, available values:\r\n");
+        fprintf(stderr, "efiffs: invalid ffs type, available values:\r\n");
         for(i = 1; types[i]; i++)
             fprintf(stderr, "  EFI_FV_FILETYPE_%s\r\n", types[i]);
         return 7; /* EFI_FV_FILETYPE_DRIVER */

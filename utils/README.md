@@ -6,4 +6,4 @@ with POSIX-UEFI into different file formats required by the UEFI firmware.
 
 * __efirom__ - creates a PCI Option ROM image
 
-* __efiffs__ - creates a DXE UEFI driver image (see [this wiki](https://github.com/pbatard/efifs/wiki/Adding-a-driver-to-a-UEFI-firmware) on how to add it to a firmaware).
+* __efiffs__ - creates a DXE UEFI driver image (see [this wiki](https://github.com/pbatard/efifs/wiki/Adding-a-driver-to-a-UEFI-firmware#adding-the-module-to-the-firmware) on how to add it to a firmware).
