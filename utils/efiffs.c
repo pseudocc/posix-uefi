@@ -254,7 +254,7 @@ int main(int argc, char **argv)
         out = (char*)malloc(i + 5);
         if(!out) { fprintf(stderr, "efiffs: unable to allocate memory\r\n"); return 2; }
         strcpy(out, in);
-        strcpy(strcmp(out + i + 4, ".efi") ? out + i - 4 : out + i, ".ffs");
+        strcpy(!strcmp(out + i - 4, ".efi") ? out + i - 4 : out + i, ".ffs");
     }
     f = fopen(out, "wb");
     if(!f) {

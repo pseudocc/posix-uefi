@@ -37,6 +37,17 @@
 
 #define eprintf(...) fprintf ( stderr, __VA_ARGS__ )
 
+/**
+ * Print help
+ *
+ * @v program_name	Program name
+ */
+static void print_help ( const char *program_name ) {
+	eprintf ( "POSIX-UEFI utils - efirom by Michael Brown GPL\r\n\r\n" );
+	eprintf ( "%s [--vendor=VVVV] [--device=DDDD] "
+		  "infile outfile\n", program_name );
+}
+
 #define EFI_SIGNATURE_16(A,B)             ((A) | (B<<8))
 #define EFI_SIGNATURE_32(A,B,C,D)         (EFI_SIGNATURE_16(A,B)     | (EFI_SIGNATURE_16(C,D)     << 16))
 #define EFI_SIGNATURE_64(A,B,C,D,E,F,G,H) (EFI_SIGNATURE_32(A,B,C,D) | ((UINT64)(EFI_SIGNATURE_32(E,F,G,H)) << 32))
@@ -1150,17 +1161,6 @@ static void make_efi_rom ( FILE *pe, FILE *rom, struct options *opts ) {
 			  strerror ( errno ) );
 		exit ( 1 );
 	}
-}
-
-/**
- * Print help
- *
- * @v program_name	Program name
- */
-static void print_help ( const char *program_name ) {
-	eprintf ( "POSIX-UEFI utils - efirom by Michael Brown GPL\r\n\r\n" );
-	eprintf ( "%s [--vendor=VVVV] [--device=DDDD] "
-		  "infile outfile\n", program_name );
 }
 
 /**
