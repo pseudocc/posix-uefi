@@ -31,9 +31,10 @@ programodat `EFI/BOOT/BOOTX64.EFI` néven kell bemásolni a könyvtárba, hogy m
 ```
 POSIX-UEFI utils - efidsk by bztsrc@gitlab MIT
 
-./efidsk [-p] [-s <méret>] bekönyvtár kimenet
+./efidsk [-p|-c] [-s <méret>] bekönyvtár kimenet
 
   -p          csak a partíciót mentse, GPT nélkül
+  -c          EFI CDROM mentése (ISO9660 El Torito no emulation boot catalog)
   -s <méret>  a partíció méretének megadása megabájtban (alapértelmezetten 33M)
   bekönvtár   ennek a könyvtárnak a tartalmából generálja
   kimenet     kimenti lemezképfájl neve

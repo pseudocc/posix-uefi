@@ -31,9 +31,10 @@ compiled file under the given directory as `EFI/BOOT/BOOTX64.EFI` to get it auto
 ```
 POSIX-UEFI utils - efidsk by bztsrc@gitlab MIT
 
-./efidsk [-p] [-s <size>] indir outfile
+./efidsk [-p|-c] [-s <size>] indir outfile
 
   -p          save only the partition image without GPT
+  -c          save EFI CDROM (ISO9660 El Torito no emulation boot catalog)
   -s <size>   set the size of partition in megabytes (defaults to 33M)
   indir       use the contents of this directory
   outfile     output image file name

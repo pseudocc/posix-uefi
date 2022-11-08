@@ -50,8 +50,9 @@ guid_t dguid, pguid;
 void usage(char *cmd)
 {
     printf("POSIX-UEFI utils - efidsk by bztsrc@gitlab MIT\r\n\r\n");
-    printf("%s [-p] [-s <size>] indir outfile\r\n\r\n", cmd);
+    printf("%s [-p|-c] [-s <size>] indir outfile\r\n\r\n", cmd);
     printf("  -p          save only the partition image without GPT\r\n");
+    printf("  -c          save EFI CDROM (ISO9660 El Torito no emulation boot catalog)\r\n");
     printf("  -s <size>   set the size of partition in megabytes (defaults to 33M)\r\n");
     printf("  indir       use the contents of this directory\r\n");
     printf("  outfile     output image file name\r\n");
@@ -420,9 +421,25 @@ void writegpt(FILE *f)
     char *name;
     if(!gpt) { fprintf(stderr, "efidsk: unable to allocate memory\r\n"); exit(1); }
     memset(gpt, 0, FIRST_PARTITION * 512);
-    p = gpt + 512;
+
+    gpt[0x1FE]=0x55; gpt[0x1FF]=0xAA;
+    memcpy(gpt+0x1B8, &dguid.Data1, 4);         /* WinNT disk id */
+    /* MBR, EFI System Partition / boot partition. */
+    gpt[0x1C0-2]=0x80;                          /* bootable flag */
+    setint(FIRST_PARTITION+1,gpt+0x1C0);        /* start CHS */
+    gpt[0x1C0+2]=0xC;                           /* type, LBA FAT32 (0xC) */
+    setint(fs_len/512,gpt+0x1C0+4);             /* end CHS */
+    setint(FIRST_PARTITION,gpt+0x1C0+6);        /* start LBA */
+    setint(fs_len/512,gpt+0x1C0+10);            /* number of sectors */
+    /* MBR, protective GPT entry */
+    setint(1,gpt+0x1D0);                        /* start CHS */
+    gpt[0x1D0+2]=0xEE;                          /* type */
+    setint(FIRST_PARTITION+1,gpt+0x1D0+4);      /* end CHS */
+    setint(1,gpt+0x1D0+6);                      /* start LBA */
+    setint(FIRST_PARTITION,gpt+0x1D0+10);       /* number of sectors */
 
     /* GPT header */
+    p = gpt + 512;
     memcpy(p,"EFI PART",8);                     /* magic */
     setint(1,p+10);                             /* revision */
     setint(92,p+12);                            /* size */
@@ -463,12 +480,118 @@ void writegpt(FILE *f)
 }
 
 /**
+ * Write out ISO9660 El Torito "no emulation" Boot Catalog
+ */
+void setinte(int val, unsigned char *ptr) { char *v=(char*)&val; memcpy(ptr,&val,4); ptr[4]=v[3]; ptr[5]=v[2]; ptr[6]=v[1]; ptr[7]=v[0]; }
+void writeetbc(FILE *f)
+{
+    int i;
+    time_t t;
+    char isodate[128];
+    unsigned char *gpt = malloc(FIRST_PARTITION * 512), *iso;
+    if(!gpt) { fprintf(stderr, "efidsk: unable to allocate memory\r\n"); exit(1); }
+    memset(gpt, 0, FIRST_PARTITION * 512);
+
+    t = time(NULL);
+    fat_ts = gmtime(&t);
+    sprintf((char*)&isodate, "%04d%02d%02d%02d%02d%02d00",
+        fat_ts->tm_year+1900,fat_ts->tm_mon+1,fat_ts->tm_mday,fat_ts->tm_hour,fat_ts->tm_min,fat_ts->tm_sec);
+    iso = gpt + 16*2048;
+    /* 16th sector: Primary Volume Descriptor */
+    iso[0]=1;   /* Header ID */
+    memcpy(&iso[1], "CD001", 5);
+    iso[6]=1;   /* version */
+    for(i=8;i<72;i++) iso[i]=' ';
+    memcpy(&iso[40], "EFI CDROM", 9);   /* Volume Identifier */
+    setinte((FIRST_PARTITION*512+fs_len+2047)/2048, &iso[80]);
+    iso[120]=iso[123]=1;        /* Volume Set Size */
+    iso[124]=iso[127]=1;        /* Volume Sequence Number */
+    iso[129]=iso[130]=8;        /* logical blocksize (0x800) */
+    iso[156]=0x22;              /* root directory recordsize */
+    setinte(20, &iso[158]);     /* root directory LBA */
+    setinte(2048, &iso[166]);   /* root directory size */
+    iso[174]=fat_ts->tm_year;   /* root directory create date */
+    iso[175]=fat_ts->tm_mon+1;
+    iso[176]=fat_ts->tm_mday;
+    iso[177]=fat_ts->tm_hour;
+    iso[178]=fat_ts->tm_min;
+    iso[179]=fat_ts->tm_sec;
+    iso[180]=0;                 /* timezone UTC (GMT) */
+    iso[181]=2;                 /* root directory flags (0=hidden,1=directory) */
+    iso[184]=1;                 /* root directory number */
+    iso[188]=1;                 /* root directory filename length */
+    for(i=190;i<813;i++) iso[i]=' ';    /* Volume data */
+    memcpy(&iso[318], "POSIX-UEFI <HTTPS://GITLAB.COM/BZTSRC/POSIX-UEFI>", 49);
+    memcpy(&iso[446], "EFIDSK", 6);
+    memcpy(&iso[574], "POSIX-UEFI", 11);
+    for(i=702;i<813;i++) iso[i]=' ';    /* file descriptors */
+    memcpy(&iso[813], &isodate, 16);    /* volume create date */
+    memcpy(&iso[830], &isodate, 16);    /* volume modify date */
+    for(i=847;i<863;i++) iso[i]='0';    /* volume expiration date */
+    for(i=864;i<880;i++) iso[i]='0';    /* volume shown date */
+    iso[881]=1;                         /* filestructure version */
+    for(i=883;i<1395;i++) iso[i]=' ';   /* file descriptors */
+    /* 17th sector: Boot Record Descriptor */
+    iso[2048]=0;    /* Header ID */
+    memcpy(&iso[2049], "CD001", 5);
+    iso[2054]=1;    /* version */
+    memcpy(&iso[2055], "EL TORITO SPECIFICATION", 23);
+    setinte(19, &iso[2048+71]);         /* Boot Catalog LBA */
+    /* 18th sector: Volume Descritor Terminator */
+    iso[4096]=0xFF; /* Header ID */
+    memcpy(&iso[4097], "CD001", 5);
+    iso[4102]=1;    /* version */
+    /* 19th sector: Boot Catalog */
+    /* --- UEFI, Validation Entry + Initial/Default Entry + Final --- */
+    iso[6144]=0x91; /* Header ID, Validation Entry, Final */
+    iso[6145]=0xEF; /* Platform EFI */
+    iso[6176]=0x88; /* Bootable, Initial/Default Entry */
+    iso[6182]=1;    /* Sector Count */
+    setint(FIRST_PARTITION/4, &iso[6184]);  /* ESP Start LBA */
+    /* 20th sector: Root Directory */
+    /* . */
+    iso[8192]=0x21 + 1;          /* recordsize */
+    setinte(20, &iso[8194]);     /* LBA */
+    setinte(2048, &iso[8202]);   /* size */
+    iso[8210]=fat_ts->tm_year;   /* date */
+    iso[8211]=fat_ts->tm_mon+1;
+    iso[8212]=fat_ts->tm_mday;
+    iso[8213]=fat_ts->tm_hour;
+    iso[8214]=fat_ts->tm_min;
+    iso[8215]=fat_ts->tm_sec;
+    iso[8216]=0;                 /* timezone UTC (GMT) */
+    iso[8217]=2;                 /* flags (0=hidden,1=directory) */
+    iso[8220]=1;                 /* serial */
+    iso[8224]=1;                 /* filename length */
+    iso[8225]=0;                 /* filename '.' */
+    /* .. */
+    iso[8226]=0x21 + 1;          /* recordsize */
+    setinte(20, &iso[8228]);     /* LBA */
+    setinte(2048, &iso[8236]);   /* size */
+    iso[8244]=fat_ts->tm_year;   /* date */
+    iso[8245]=fat_ts->tm_mon+1;
+    iso[8246]=fat_ts->tm_mday;
+    iso[8247]=fat_ts->tm_hour;
+    iso[8248]=fat_ts->tm_min;
+    iso[8249]=fat_ts->tm_sec;
+    iso[8250]=0;                 /* timezone UTC (GMT) */
+    iso[8251]=2;                 /* flags (0=hidden,1=directory) */
+    iso[8254]=1;                 /* serial */
+    iso[8258]=1;                 /* filename length */
+    iso[8259]='\001';            /* filename '..' */
+
+    fwrite(gpt, 1, FIRST_PARTITION * 512, f);
+    fwrite(fs_base, 1, fs_len, f);
+    free(gpt);
+}
+
+/**
  * Main function
  */
 int main(int argc, char **argv)
 {
     FILE *f;
-    int i, part = 0;
+    int i, part = 0, cdrom = 0;
     char *in = NULL, *out = NULL;
 
     /* get random GUIDs */
@@ -487,6 +610,7 @@ int main(int argc, char **argv)
         if(argv[i][0] == '-') {
             switch(argv[i][1]) {
                 case 'p': part++; break;
+                case 'c': cdrom++; break;
                 case 's': fat_numclu = atoi(argv[++i]) * 2048; break;
                 default: usage(argv[0]); break;
             }
@@ -509,9 +633,12 @@ int main(int argc, char **argv)
             fprintf(stderr, "efidsk: unable to write '%s'\r\n", out);
             return 2;
         }
-        if(!part)
-            writegpt(f);
-        else
+        if(!part) {
+            if(!cdrom)
+                writegpt(f);
+            else
+                writeetbc(f);
+        } else
             fwrite(fs_base, 1, fs_len, f);
         fclose(f);
         free(fs_base);
