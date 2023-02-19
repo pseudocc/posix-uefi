@@ -51,7 +51,11 @@ endif
 ifeq ($(ARCH),aarch64)
 EFIARCH = pei-aarch64-little
 else
+ifeq ($(ARCH),riscv64)
+EFIARCH = pei-riscv64-little
+else
 EFIARCH = efi-app-$(ARCH)
+endif
 endif
 AR ?= ar
 else

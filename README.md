@@ -108,11 +108,11 @@ OUTDIR = build/loader
 USE_GCC = 1
 include uefi/Makefile
 ```
-The build environment configurator was created in a way that it can handle any number of architectures, however
-only `x86_64` crt0 has been throughfully tested for now. There's an `aarch64` crt0 too, but since I don't have
-an ARM UEFI board, it hasn't been tested on real machine. Should work though. If you want to port it to another
-architecture, all you need is a setjmp struct in uefi.h, and an appropriate crt_X.c file. That's it. Everything
-else was coded in an architecture independent way.
+The build environment configurator was created in a way that it can handle any number of architectures, however only
+`x86_64` crt0 has been throughfully tested for now. There's an `aarch64` and a `riscv64` crt0 too, but since I don't
+have neither an ARM UEFI, nor a RISC-V UEFI board, these **haven't been tested at all**. Should work though. If you want
+to port it to another architecture, all you need is a setjmp struct in uefi.h, and an appropriate crt_X.c file. That's
+it. Everything else was coded in an architecture independent way.
 
 ### Available Configuration Options
 

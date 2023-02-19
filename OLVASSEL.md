@@ -100,10 +100,11 @@ OUTDIR = build/loader
 USE_GCC = 1
 include uefi/Makefile
 ```
-A fordítási környezet konfiguráló úgy lett kialakítva, hogy akárhány architektúrával elboldogul, azonban eddig csak
-az `x86_64` crt0 lett alaposan letesztelve. Van egy `aarch64` crt0 is, de mivel nekem nincs ARM UEFI-s gépem, teszteletlen.
-Elvileg kéne működnie. Ha új architectúrára akarod portolni, akkor a setjmp struct-ot kell megadni az uefi.h-ban, valamint
-csinálni neki egy crt0_X.c fájlt. Ennyi. Minden más platformfüggetlenül lett megírva.
+A fordítási környezet konfiguráló úgy lett kialakítva, hogy akárhány architektúrával elboldogul, azonban eddig csak az
+`x86_64` crt0 lett alaposan letesztelve. Van `aarch64` és `riscv64` crt0 is, de mivel nekem nincs sem ARM UEFI-s, sem
+RISC-V UEFI-s gépem, **mindkettő teszteletlen**. Elvileg kéne működnie. Ha új architectúrára akarod portolni, akkor a
+setjmp struct-ot kell megadni az uefi.h-ban, valamint csinálni neki egy crt0_X.c fájlt. Ennyi. Minden más
+platformfüggetlenül lett megírva.
 
 ### Elérhető konfigurációs opciók
 

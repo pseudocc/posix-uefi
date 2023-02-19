@@ -244,6 +244,14 @@ typedef struct {
     uint64_t    D15;
 } __attribute__((aligned(8))) jmp_buf[1];
 #endif
+#if defined(__riscv) && __riscv_xlen == 64
+typedef struct {
+    uint64_t    pc;
+    uint64_t    sp;
+    uint64_t    regs[12];
+    double      fp[12];
+} __attribute__((aligned(8))) jmp_buf[1];
+#endif
 extern uintn_t setjmp(jmp_buf env) __attribute__((returns_twice));
 extern void longjmp(jmp_buf env, uintn_t value) __attribute__((noreturn));
 
