@@ -26,6 +26,7 @@ endif
 LIBSRCS = $(filter-out $(wildcard crt_*.c),$(wildcard *.c)) $(wildcard *.S)
 TMP2 = $(LIBSRCS:.c=.o)
 LIBOBJS = $(TMP2:.S=.o)
+MAKE ?= make
 
 # detect toolchain
 ifeq ($(wildcard /usr/bin/clang)$(wildcard /usr/local/bin/clang)$(wildcard /usr/lib/llvm/*/bin/clang),)
@@ -82,7 +83,7 @@ $(OUTDIR):
 endif
 
 uefi/libuefi.a:
-	@make --no-print-directory -C uefi libuefi.a USE_GCC=$(USE_GCC) ARCH=$(ARCH)
+	@$(MAKE) --no-print-directory -C uefi libuefi.a USE_GCC=$(USE_GCC) ARCH=$(ARCH)
 
 libuefi.lib: $(LIBOBJS)
 
