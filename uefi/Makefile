@@ -29,7 +29,7 @@ LIBOBJS = $(TMP2:.S=.o)
 MAKE ?= make
 
 # detect toolchain
-ifeq ($(wildcard /usr/bin/clang)$(wildcard /usr/local/bin/clang)$(wildcard /usr/lib/llvm/*/bin/clang),)
+ifeq ($(wildcard /usr/bin/clang)$(wildcard /usr/local/bin/clang)$(wildcard /usr/lib/llvm/*/bin/clang)$(wildcard /gnu/store/*/bin/clang),)
 USE_GCC = 1
 endif
 ifneq ($(USE_GCC),)
