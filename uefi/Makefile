@@ -88,12 +88,8 @@ uefi/libuefi.a:
 libuefi.lib: $(LIBOBJS)
 
 libuefi.a: $(LIBOBJS)
-ifneq ($(USE_GCC),)
 	@rm $@ 2>/dev/null || true
 	$(AR) -frsv $@ $(LIBOBJS) >/dev/null
-else
-	@true
-endif
 
 $(TARGET): $(addprefix $(OUTDIR),$(TARGET).so)
 ifneq ($(USE_GCC),)
@@ -118,7 +114,12 @@ buildlib:
 	@mkdir ../build ../build/uefi 2>/dev/null || true
 	@cp crt_$(ARCH).o ../build/uefi/crt0.o
 	@cp elf_$(ARCH)_efi.lds ../build/uefi/link.ld
+ifneq ($(USE_GCC),)
 	@cp libuefi.a uefi.h ../build/uefi
+else
+	@cp uefi.h ../build/uefi
+	@cp libuefi.a ../build/uefi/libuefi.dll.a
+endif
 
 clean:
 	@rm $(addprefix $(OUTDIR),$(TARGET)) *.o *.a *.lib *.elf $(LIBOBJS) 2>/dev/null || true

@@ -35,8 +35,7 @@ Szigorúan véve csak a **crt0.o** és a **link.ld** fájlokra van szükség, ez
 "main()" eljárását. Viszont ahhoz, hogy a libc funkciókat (mint pl. memcmp, strcpy, malloc vagy fopen) használhasd, linkelned
 kell a **libuefi.a** fájllal is.
 
-Egyenlőre ez a metódus csak gcc-vel működik, mivel a Clang úgy van beállítva, hogy direktben PE fájlokat hoz létre, ezért nem tud
-statikus ELF .a fájlokat generálni, sem linkelni velük.
+Clang úgy van beállítva, hogy direktben PE fájlokat hoz létre, ezért a generált függvénykönyvtár neve **libuefi.dll.a*.
 
 Forrásként terjesztve
 ---------------------

@@ -44,8 +44,7 @@ the linking and converting.
 Strictly speaking you'll only need **crt0.o** and **link.ld**, that will get you started and will call your application's
 "main()", but to get libc functions like memcmp, strcpy, malloc or fopen, you'll have to link with **libuefi.a** too.
 
-For now this only works with gcc, because Clang is configured in a way to directly create PE files, so it cannot create
-nor link with static ELF .a files.
+Clang is configured in a way to directly create PE files, so the resulting library's name is **libuefi.dll.a*.
 
 Distributing as Source
 ----------------------
