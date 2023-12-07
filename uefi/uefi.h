@@ -1161,6 +1161,17 @@ typedef struct {
     efi_gop_mode_t          *Mode;
 } efi_gop_t;
 
+/*** EDID Protocol (not used, but could be useful to have) ***/
+#ifndef EFI_EDID_ACTIVE_GUID
+#define EFI_EDID_ACTIVE_GUID     { 0xbd8c1056, 0x9f36, 0x44ec, { 0x92, 0xa8, 0xa6, 0x33, 0x7f, 0x81, 0x79, 0x86 } }
+#define EFI_EDID_DISCOVERED_GUID { 0x1c0c34f6, 0xd380, 0x41fa, { 0xa0, 0x49, 0x8a, 0xd0, 0x6c, 0x1a, 0x66, 0xaa } }
+#endif
+
+typedef struct {
+  uint32_t SizeOfEdid;
+  uint8_t *Edid;
+} efi_edid_t;
+
 /*** Simple Pointer Protocol (not used, but could be useful to have) ***/
 #ifndef EFI_SIMPLE_POINTER_PROTOCOL_GUID
 #define EFI_SIMPLE_POINTER_PROTOCOL_GUID { 0x31878c87, 0xb75, 0x11d5, { 0x9a, 0x4f, 0x0, 0x90, 0x27, 0x3f, 0xc1, 0x4d } }
