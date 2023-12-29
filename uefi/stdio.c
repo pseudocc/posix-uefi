@@ -513,7 +513,8 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
     a==CL('\r') || a==CL('\n') || a==CL('\t') || a==CL('\v'))
     efi_physical_address_t m;
     uint8_t *mem;
-    int64_t arg;
+    uint64_t arg;
+    int64_t iarg;
     int len, sign, i, j;
     char_t *p, *orig=dst, *end = dst + maxlen - 1, tmpstr[24], pad, n;
 #ifdef UEFI_NO_UTF8
@@ -547,13 +548,13 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
                 fmt++;
                 continue;
             } else
-            if(*fmt==CL('d') || *fmt==CL('i')) {
-                arg = __builtin_va_arg(args, int64_t);
+            if(*fmt==CL('d') || *fmt==CL('i') || *fmt==CL('u')) {
+                iarg = __builtin_va_arg(args, int64_t);
                 sign=0;
-                if(arg<0) {
-                    arg*=-1;
+                if(*fmt!=CL('u') && iarg<0) {
+                    arg=-iarg;
                     sign++;
-                }
+                } else arg=(uint64_t)iarg;
                 i=23;
                 tmpstr[i]=0;
                 do {
@@ -576,7 +577,7 @@ int vsnprintf(char_t *dst, size_t maxlen, const char_t *fmt, __builtin_va_list a
                 len = 16; pad = CL('0'); goto hex;
             } else
             if(*fmt==CL('x') || *fmt==CL('X')) {
-                arg = __builtin_va_arg(args, int64_t);
+                arg = __builtin_va_arg(args, uint64_t);
 hex:            i=16;
                 tmpstr[i]=0;
                 do {

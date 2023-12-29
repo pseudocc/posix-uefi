@@ -70,7 +70,9 @@ extern char c_assert3[sizeof(uintptr_t) == 8 ? 1 : -1];
 /*** common defines and typedefs ***/
 typedef int64_t  intn_t;
 typedef uint8_t  boolean_t;
+#ifndef __cplusplus
 typedef uint16_t wchar_t;
+#endif
 typedef uint64_t uintn_t;
 typedef uint64_t size_t;
 typedef uint64_t time_t;
