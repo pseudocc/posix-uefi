@@ -167,7 +167,7 @@ char_t *strncat(char_t *dst, const char_t *src, size_t n)
 
 int strncmp(const char_t *s1, const char_t *s2, size_t n)
 {
-    const char_t *e = s1+n;
+    const char_t *e = s1+n-1;
     if(s1 && s2 && s1!=s2 && n>0) {
         while(s1<e && *s1 && *s1==*s2){s1++;s2++;}
         return *s1-*s2;
